@@ -6,11 +6,11 @@ export const BRAND_ASSET_PATHS = {
   productionWebFavicon16Png: "assets/prod/flagcode-web-favicon-16x16.png",
   productionWebFavicon32Png: "assets/prod/flagcode-web-favicon-32x32.png",
   productionWebAppleTouchIconPng: "assets/prod/flagcode-web-apple-touch-180.png",
-  developmentWindowsIconIco: "assets/dev/blueprint-windows.ico",
-  developmentWebFaviconIco: "assets/dev/blueprint-web-favicon.ico",
-  developmentWebFavicon16Png: "assets/dev/blueprint-web-favicon-16x16.png",
-  developmentWebFavicon32Png: "assets/dev/blueprint-web-favicon-32x32.png",
-  developmentWebAppleTouchIconPng: "assets/dev/blueprint-web-apple-touch-180.png",
+  developmentWindowsIconIco: "assets/dev/flagcode-windows.ico",
+  developmentWebFaviconIco: "assets/dev/flagcode-web-favicon.ico",
+  developmentWebFavicon16Png: "assets/dev/flagcode-web-favicon-16x16.png",
+  developmentWebFavicon32Png: "assets/dev/flagcode-web-favicon-32x32.png",
+  developmentWebAppleTouchIconPng: "assets/dev/flagcode-web-apple-touch-180.png",
 } as const;
 
 export interface IconOverride {
