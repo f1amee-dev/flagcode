@@ -168,6 +168,7 @@ export interface ComposerThreadDraftState {
   activeProvider: ProviderKind | null;
   runtimeMode: RuntimeMode | null;
   interactionMode: ProviderInteractionMode | null;
+  ctfCategory: CtfCategory | null;
 }
 
 export interface DraftThreadState {
@@ -327,6 +328,7 @@ const EMPTY_THREAD_DRAFT = Object.freeze<ComposerThreadDraftState>({
   activeProvider: null,
   runtimeMode: null,
   interactionMode: null,
+  ctfCategory: null,
 });
 
 function createEmptyThreadDraft(): ComposerThreadDraftState {
@@ -340,6 +342,7 @@ function createEmptyThreadDraft(): ComposerThreadDraftState {
     activeProvider: null,
     runtimeMode: null,
     interactionMode: null,
+    ctfCategory: null,
   };
 }
 
@@ -409,7 +412,8 @@ function shouldRemoveDraft(draft: ComposerThreadDraftState): boolean {
     Object.keys(draft.modelSelectionByProvider).length === 0 &&
     draft.activeProvider === null &&
     draft.runtimeMode === null &&
-    draft.interactionMode === null
+    draft.interactionMode === null &&
+    draft.ctfCategory === null
   );
 }
 
@@ -745,6 +749,22 @@ function normalizePersistedTerminalContextDraft(
   };
 }
 
+const VALID_CTF_CATEGORIES = new Set<string>([
+  "crypto",
+  "pwn",
+  "reverse-engineering",
+  "web",
+  "forensics",
+  "misc",
+]);
+
+function normalizeCtfCategory(value: unknown): CtfCategory | null {
+  if (typeof value === "string" && VALID_CTF_CATEGORIES.has(value)) {
+    return value as CtfCategory;
+  }
+  return null;
+}
+
 function normalizeDraftThreadEnvMode(
   value: unknown,
   fallbackWorktreePath: string | null,
@@ -779,6 +799,7 @@ function normalizePersistedDraftThreads(
       const branch = candidateDraftThread.branch;
       const worktreePath = candidateDraftThread.worktreePath;
       const normalizedWorktreePath = typeof worktreePath === "string" ? worktreePath : null;
+      const ctfCategory = normalizeCtfCategory(candidateDraftThread.ctfCategory);
       if (typeof projectId !== "string" || projectId.length === 0) {
         continue;
       }
@@ -801,6 +822,7 @@ function normalizePersistedDraftThreads(
         branch: typeof branch === "string" ? branch : null,
         worktreePath: normalizedWorktreePath,
         envMode: normalizeDraftThreadEnvMode(candidateDraftThread.envMode, normalizedWorktreePath),
+        ...(ctfCategory ? { ctfCategory } : {}),
       };
     }
   }
@@ -998,6 +1020,7 @@ function migratePersistedComposerDraftStoreState(
     projectDraftThreadIdByProjectId,
     stickyModelSelectionByProvider,
     stickyActiveProvider,
+    stickyCtfCategory: normalizeCtfCategory(candidate.stickyCtfCategory),
   };
 }
 
@@ -1118,7 +1141,7 @@ function normalizeCurrentPersistedComposerDraftStoreState(
     projectDraftThreadIdByProjectId,
     stickyModelSelectionByProvider,
     stickyActiveProvider,
-    stickyCtfCategory: null,
+    stickyCtfCategory: normalizeCtfCategory(normalizedPersistedState.stickyCtfCategory),
   };
 }
 
@@ -1264,6 +1287,7 @@ function toHydratedThreadDraft(
     activeProvider,
     runtimeMode: persistedDraft.runtimeMode ?? null,
     interactionMode: persistedDraft.interactionMode ?? null,
+    ctfCategory: null,
   };
 }
 
@@ -1872,9 +1896,41 @@ export const useComposerDraftStore = create<ComposerDraftStoreState>()(
         }
         const nextCategory = ctfCategory ?? null;
         set((state) => {
+          // Update the composer draft (draftsByThreadId) so server threads can read it
+          const existing = state.draftsByThreadId[threadId];
+          if (!existing && nextCategory === null) {
+            // Also update draft thread if it exists
+            const draftThread = state.draftThreadsByThreadId[threadId];
+            if (draftThread) {
+              return {
+                draftThreadsByThreadId: {
+                  ...state.draftThreadsByThreadId,
+                  [threadId]: { ...draftThread, ctfCategory: nextCategory },
+                },
+                stickyCtfCategory: nextCategory,
+              };
+            }
+            return { stickyCtfCategory: nextCategory };
+          }
+          const base = existing ?? createEmptyThreadDraft();
+          if (base.ctfCategory === nextCategory) {
+            return state;
+          }
+          const nextDraft: ComposerThreadDraftState = {
+            ...base,
+            ctfCategory: nextCategory,
+          };
+          const nextDraftsByThreadId = { ...state.draftsByThreadId };
+          if (shouldRemoveDraft(nextDraft)) {
+            delete nextDraftsByThreadId[threadId];
+          } else {
+            nextDraftsByThreadId[threadId] = nextDraft;
+          }
+          // Also update draft thread and sticky
           const draftThread = state.draftThreadsByThreadId[threadId];
           if (draftThread) {
             return {
+              draftsByThreadId: nextDraftsByThreadId,
               draftThreadsByThreadId: {
                 ...state.draftThreadsByThreadId,
                 [threadId]: { ...draftThread, ctfCategory: nextCategory },
@@ -1882,7 +1938,10 @@ export const useComposerDraftStore = create<ComposerDraftStoreState>()(
               stickyCtfCategory: nextCategory,
             };
           }
-          return { stickyCtfCategory: nextCategory };
+          return {
+            draftsByThreadId: nextDraftsByThreadId,
+            stickyCtfCategory: nextCategory,
+          };
         });
       },
       addImage: (threadId, image) => {
@@ -2190,6 +2249,7 @@ export const useComposerDraftStore = create<ComposerDraftStoreState>()(
           projectDraftThreadIdByProjectId: normalizedPersisted.projectDraftThreadIdByProjectId,
           stickyModelSelectionByProvider: normalizedPersisted.stickyModelSelectionByProvider ?? {},
           stickyActiveProvider: normalizedPersisted.stickyActiveProvider ?? null,
+          stickyCtfCategory: normalizedPersisted.stickyCtfCategory ?? null,
         };
       },
     },

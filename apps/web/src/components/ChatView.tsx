@@ -841,7 +841,8 @@ export default function ChatView({ threadId }: ChatViewProps) {
     composerDraft.runtimeMode ?? activeThread?.runtimeMode ?? DEFAULT_RUNTIME_MODE;
   const interactionMode =
     composerDraft.interactionMode ?? activeThread?.interactionMode ?? DEFAULT_INTERACTION_MODE;
-  const ctfCategory = activeThread?.ctfCategory ?? draftThread?.ctfCategory ?? null;
+  const ctfCategory =
+    composerDraft.ctfCategory ?? activeThread?.ctfCategory ?? draftThread?.ctfCategory ?? null;
   const setCtfCategory = useComposerDraftStore((store) => store.setCtfCategory);
   const isServerThread = serverThread !== undefined;
   const isLocalDraftThread = !isServerThread && localDraftThread !== undefined;
@@ -3062,9 +3063,7 @@ export default function ChatView({ threadId }: ChatViewProps) {
                       interactionMode,
                       branch: activeThread.branch,
                       worktreePath: activeThread.worktreePath,
-                      ...(activeThread.ctfCategory
-                        ? { ctfCategory: activeThread.ctfCategory }
-                        : {}),
+                      ...(ctfCategory ? { ctfCategory } : {}),
                       createdAt: activeThread.createdAt,
                     },
                   }

@@ -745,6 +745,9 @@ export function applyOrchestrationEvent(state: AppState, event: OrchestrationEve
         ...(event.payload.worktreePath !== undefined
           ? { worktreePath: event.payload.worktreePath }
           : {}),
+        ...(event.payload.ctfCategory !== undefined
+          ? { ctfCategory: event.payload.ctfCategory }
+          : {}),
         updatedAt: event.payload.updatedAt,
       }));
     }

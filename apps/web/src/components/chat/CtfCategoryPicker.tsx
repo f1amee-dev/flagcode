@@ -1,8 +1,7 @@
 import type { CtfCategory } from "@flagcode/contracts";
 import { CTF_CATEGORIES } from "@flagcode/shared/ctf";
-import { memo, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import {
-  CheckIcon,
   ChevronDownIcon,
   FingerprintIcon,
   GlobeIcon,
@@ -14,7 +13,15 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "../ui/button";
-import { Menu, MenuItem, MenuPopup, MenuTrigger } from "../ui/menu";
+import {
+  Menu,
+  MenuGroup,
+  MenuPopup,
+  MenuRadioGroup,
+  MenuRadioItem,
+  MenuSeparator,
+  MenuTrigger,
+} from "../ui/menu";
 import { cn } from "~/lib/utils";
 
 export const CATEGORY_ICON_MAP: Record<CtfCategory, LucideIcon> = {
@@ -26,6 +33,8 @@ export const CATEGORY_ICON_MAP: Record<CtfCategory, LucideIcon> = {
   misc: PuzzleIcon,
 };
 
+const NONE_VALUE = "__none__";
+
 export const CtfCategoryPicker = memo(function CtfCategoryPicker(props: {
   value: CtfCategory | null;
   onChange: (category: CtfCategory | null) => void;
@@ -35,14 +44,15 @@ export const CtfCategoryPicker = memo(function CtfCategoryPicker(props: {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const selectedCategory = props.value ? CTF_CATEGORIES.find((c) => c.id === props.value) : null;
-
   const CategoryIcon = props.value ? CATEGORY_ICON_MAP[props.value] : null;
 
-  const handleSelect = (category: CtfCategory | null) => {
-    if (props.disabled) return;
-    props.onChange(category);
-    setIsMenuOpen(false);
-  };
+  const handleValueChange = useCallback(
+    (value: string) => {
+      props.onChange(value === NONE_VALUE ? null : (value as CtfCategory));
+      setIsMenuOpen(false);
+    },
+    [props.onChange],
+  );
 
   return (
     <Menu
@@ -82,37 +92,32 @@ export const CtfCategoryPicker = memo(function CtfCategoryPicker(props: {
         </span>
       </MenuTrigger>
       <MenuPopup align="start">
-        <MenuItem
-          className="grid min-h-8 cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-sm py-1 ps-2 pe-4 text-sm"
-          onClick={() => handleSelect(null)}
-        >
-          <span className="col-start-1 flex items-center justify-center">
-            {props.value === null ? <CheckIcon className="size-3.5" /> : null}
-          </span>
-          <span className="col-start-2 flex items-center gap-2">
-            <XIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground/70" />
-            None
-          </span>
-        </MenuItem>
-        {CTF_CATEGORIES.map((category) => {
-          const Icon = CATEGORY_ICON_MAP[category.id];
-          const isSelected = props.value === category.id;
-          return (
-            <MenuItem
-              key={category.id}
-              className="grid min-h-8 cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-sm py-1 ps-2 pe-4 text-sm"
-              onClick={() => handleSelect(category.id)}
-            >
-              <span className="col-start-1 flex items-center justify-center">
-                {isSelected ? <CheckIcon className="size-3.5" /> : null}
+        <MenuGroup>
+          <MenuRadioGroup value={props.value ?? NONE_VALUE} onValueChange={handleValueChange}>
+            <MenuRadioItem value={NONE_VALUE} onClick={() => setIsMenuOpen(false)}>
+              <span className="flex items-center gap-2">
+                <XIcon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground/70" />
+                None
               </span>
-              <span className="col-start-2 flex items-center gap-2">
-                <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground/70" />
-                {category.label}
-              </span>
-            </MenuItem>
-          );
-        })}
+            </MenuRadioItem>
+            <MenuSeparator />
+            {CTF_CATEGORIES.map((category) => {
+              const Icon = CATEGORY_ICON_MAP[category.id];
+              return (
+                <MenuRadioItem
+                  key={category.id}
+                  value={category.id}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span className="flex items-center gap-2">
+                    <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground/70" />
+                    {category.label}
+                  </span>
+                </MenuRadioItem>
+              );
+            })}
+          </MenuRadioGroup>
+        </MenuGroup>
       </MenuPopup>
     </Menu>
   );
