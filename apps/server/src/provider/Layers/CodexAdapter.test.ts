@@ -279,6 +279,7 @@ sessionErrorLayer("CodexAdapterLive session errors", (it) => {
         model: "gpt-5.3-codex",
         effort: "high",
         serviceTier: "fast",
+        ctfCustomPrompts: {},
       });
     }),
   );
