@@ -84,6 +84,7 @@ function makeThread(overrides: Partial<Thread> = {}): Thread {
     branch: null,
     worktreePath: null,
     ctfCategory: null,
+    dockerSandbox: null,
     ...overrides,
   };
 }
@@ -394,6 +395,7 @@ function makeReadModelThread(overrides: Partial<OrchestrationReadModel["threads"
     ctfCategory: null,
     swarmId: null,
     swarmLabel: null,
+    dockerSandbox: null,
     createdAt: "2026-02-27T00:00:00.000Z",
     updatedAt: "2026-02-27T00:00:00.000Z",
     archivedAt: null,
@@ -795,6 +797,7 @@ describe("incremental orchestration updates", () => {
         ctfCategory: null,
         swarmId: null,
         swarmLabel: null,
+        dockerSandbox: null,
         createdAt: "2026-02-27T00:00:01.000Z",
         updatedAt: "2026-02-27T00:00:01.000Z",
       }),

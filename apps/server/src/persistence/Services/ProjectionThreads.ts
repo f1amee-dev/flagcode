@@ -31,6 +31,9 @@ export const ProjectionThread = Schema.Struct({
   branch: Schema.NullOr(Schema.String),
   worktreePath: Schema.NullOr(Schema.String),
   ctfCategory: Schema.NullOr(CtfCategory),
+  dockerSandbox: Schema.NullOr(Schema.Union([Schema.Boolean, Schema.BooleanFromBit])).pipe(
+    Schema.withDecodingDefault(() => null),
+  ),
   latestTurnId: Schema.NullOr(TurnId),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,

@@ -27,6 +27,7 @@ import { ProviderAdapterValidationError } from "../Errors.ts";
 import { CodexAdapter } from "../Services/CodexAdapter.ts";
 import { ProviderSessionDirectory } from "../Services/ProviderSessionDirectory.ts";
 import { makeCodexAdapterLive } from "./CodexAdapter.ts";
+import { SandboxLayerNoop } from "../../sandbox/SandboxLayer.ts";
 
 const asThreadId = (value: string): ThreadId => ThreadId.make(value);
 const asTurnId = (value: string): TurnId => TurnId.make(value);
@@ -155,6 +156,7 @@ const validationLayer = it.layer(
     Layer.provideMerge(ServerSettingsService.layerTest()),
     Layer.provideMerge(providerSessionDirectoryTestLayer),
     Layer.provideMerge(NodeServices.layer),
+    Layer.provideMerge(SandboxLayerNoop),
   ),
 );
 
@@ -222,6 +224,7 @@ const sessionErrorLayer = it.layer(
     Layer.provideMerge(ServerSettingsService.layerTest()),
     Layer.provideMerge(providerSessionDirectoryTestLayer),
     Layer.provideMerge(NodeServices.layer),
+    Layer.provideMerge(SandboxLayerNoop),
   ),
 );
 
@@ -285,6 +288,7 @@ const lifecycleLayer = it.layer(
     Layer.provideMerge(ServerSettingsService.layerTest()),
     Layer.provideMerge(providerSessionDirectoryTestLayer),
     Layer.provideMerge(NodeServices.layer),
+    Layer.provideMerge(SandboxLayerNoop),
   ),
 );
 

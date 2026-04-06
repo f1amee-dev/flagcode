@@ -284,6 +284,7 @@ export function projectEvent(
             ctfCategory: payload.ctfCategory ?? null,
             swarmId: payload.swarmId ?? null,
             swarmLabel: payload.swarmLabel ?? null,
+            dockerSandbox: payload.dockerSandbox ?? null,
             latestTurn: null,
             createdAt: payload.createdAt,
             updatedAt: payload.updatedAt,
@@ -351,6 +352,9 @@ export function projectEvent(
             ...(payload.branch !== undefined ? { branch: payload.branch } : {}),
             ...(payload.worktreePath !== undefined ? { worktreePath: payload.worktreePath } : {}),
             ...(payload.ctfCategory !== undefined ? { ctfCategory: payload.ctfCategory } : {}),
+            ...(payload.dockerSandbox !== undefined
+              ? { dockerSandbox: payload.dockerSandbox }
+              : {}),
             updatedAt: payload.updatedAt,
           }),
         })),

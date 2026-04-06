@@ -114,6 +114,11 @@ export const WS_METHODS = {
   serverGetSettings: "server.getSettings",
   serverUpdateSettings: "server.updateSettings",
 
+  // Sandbox methods
+  sandboxGetStatus: "sandbox.getStatus",
+  sandboxInstallImage: "sandbox.installImage",
+  sandboxBuildImage: "sandbox.buildImage",
+
   // Streaming subscriptions
   subscribeGitStatus: "subscribeGitStatus",
   subscribeOrchestrationDomainEvents: "subscribeOrchestrationDomainEvents",
@@ -376,6 +381,43 @@ export const WsSubscribeSwarmFindingsRpc = Rpc.make(WS_METHODS.subscribeSwarmFin
   stream: true,
 });
 
+export const SandboxStatusPayload = Schema.Struct({
+  dockerAvailable: Schema.Boolean,
+  imageInstalled: Schema.Boolean,
+  imageTag: Schema.optional(Schema.String),
+});
+export type SandboxStatusPayload = typeof SandboxStatusPayload.Type;
+
+export const SandboxInstallProgressEvent = Schema.Union([
+  Schema.Struct({
+    stage: Schema.Literal("pulling"),
+    layer: Schema.String,
+    progress: Schema.String,
+  }),
+  Schema.Struct({
+    stage: Schema.Literal("complete"),
+    imageId: Schema.String,
+  }),
+]);
+export type SandboxInstallProgressEvent = typeof SandboxInstallProgressEvent.Type;
+
+export const WsSandboxGetStatusRpc = Rpc.make(WS_METHODS.sandboxGetStatus, {
+  payload: Schema.Struct({}),
+  success: SandboxStatusPayload,
+});
+
+export const WsSandboxInstallImageRpc = Rpc.make(WS_METHODS.sandboxInstallImage, {
+  payload: Schema.Struct({}),
+  success: SandboxInstallProgressEvent,
+  stream: true,
+});
+
+export const WsSandboxBuildImageRpc = Rpc.make(WS_METHODS.sandboxBuildImage, {
+  payload: Schema.Struct({}),
+  success: SandboxInstallProgressEvent,
+  stream: true,
+});
+
 export const WsRpcGroup = RpcGroup.make(
   WsServerGetConfigRpc,
   WsServerRefreshProvidersRpc,
@@ -416,4 +458,7 @@ export const WsRpcGroup = RpcGroup.make(
   WsWriteupGenerateRpc,
   WsSwarmGetFindingsRpc,
   WsSubscribeSwarmFindingsRpc,
+  WsSandboxGetStatusRpc,
+  WsSandboxInstallImageRpc,
+  WsSandboxBuildImageRpc,
 );

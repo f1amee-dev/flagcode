@@ -67,6 +67,10 @@
     "./rpc": {
       "types": "./src/rpc.ts",
       "import": "./src/rpc.ts"
+    },
+    "./sandbox": {
+      "types": "./src/sandbox.ts",
+      "import": "./src/sandbox.ts"
     }
   },
   "scripts": {

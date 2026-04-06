@@ -40,6 +40,7 @@ import {
 import { resolveAttachmentPath } from "../../attachmentStore.ts";
 import { ServerConfig } from "../../config.ts";
 import { ServerSettingsService } from "../../serverSettings.ts";
+import { SandboxService, type SandboxHandle } from "../../sandbox/SandboxService.ts";
 import { type EventNdjsonLogger, makeEventNdjsonLogger } from "./EventNdjsonLogger.ts";
 
 const PROVIDER = "codex" as const;
@@ -1373,6 +1374,8 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
     }),
   );
   const serverSettingsService = yield* ServerSettingsService;
+  const sandboxService = yield* SandboxService;
+  const sandboxHandles = new Map<ThreadId, SandboxHandle>();
 
   const startSession: CodexAdapterShape["startSession"] = Effect.fn("startSession")(
     function* (input) {
@@ -1398,6 +1401,23 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
       );
       const binaryPath = codexSettings.binaryPath;
       const homePath = codexSettings.homePath;
+
+      let sandboxHandle: SandboxHandle | undefined;
+      if (input.dockerSandbox === true) {
+        sandboxHandle = yield* sandboxService.startContainer(input.cwd ?? process.cwd()).pipe(
+          Effect.mapError(
+            (error) =>
+              new ProviderAdapterProcessError({
+                provider: PROVIDER,
+                threadId: input.threadId,
+                detail: `Failed to start Docker sandbox: ${error.message}`,
+                cause: error,
+              }),
+          ),
+        );
+        sandboxHandles.set(input.threadId, sandboxHandle);
+      }
+
       const managerInput: CodexAppServerStartSessionInput = {
         threadId: input.threadId,
         provider: "codex",
@@ -1412,6 +1432,8 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
         ...(input.modelSelection?.provider === "codex" && input.modelSelection.options?.fastMode
           ? { serviceTier: "fast" }
           : {}),
+        ...(sandboxHandle ? { sandboxContainerId: sandboxHandle.containerId } : {}),
+        ...(sandboxHandle ? { sandboxBridgeHost: sandboxHandle.bridgeHost } : {}),
       };
 
       return yield* Effect.tryPromise({
@@ -1553,8 +1575,20 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
     });
 
   const stopSession: CodexAdapterShape["stopSession"] = (threadId) =>
-    Effect.sync(() => {
+    Effect.gen(function* () {
       manager.stopSession(threadId);
+      const handle = sandboxHandles.get(threadId);
+      if (handle) {
+        sandboxHandles.delete(threadId);
+        yield* sandboxService.stopContainer(handle).pipe(
+          Effect.catch((error) =>
+            Effect.logWarning("Failed to stop sandbox container on session stop", {
+              containerId: handle.containerId,
+              error: error.message,
+            }),
+          ),
+        );
+      }
     });
 
   const listSessions: CodexAdapterShape["listSessions"] = () =>

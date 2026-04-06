@@ -229,6 +229,7 @@ const makeThread = (input?: {
   ctfCategory: null,
   turnDiffSummaries: [],
   activities: [],
+  dockerSandbox: null,
 });
 
 function setStoreThreads(threads: ReadonlyArray<ReturnType<typeof makeThread>>) {
@@ -475,6 +476,7 @@ describe("hasServerAcknowledgedLocalDispatch", () => {
       ctfCategory: null,
       turnDiffSummaries: [],
       activities: [],
+      dockerSandbox: null,
     });
 
     expect(
@@ -513,6 +515,7 @@ describe("hasServerAcknowledgedLocalDispatch", () => {
       ctfCategory: null,
       turnDiffSummaries: [],
       activities: [],
+      dockerSandbox: null,
     });
 
     expect(
@@ -560,6 +563,7 @@ describe("hasServerAcknowledgedLocalDispatch", () => {
       ctfCategory: null,
       turnDiffSummaries: [],
       activities: [],
+      dockerSandbox: null,
     });
 
     expect(

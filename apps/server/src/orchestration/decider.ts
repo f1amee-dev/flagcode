@@ -168,6 +168,7 @@ export const decideOrchestrationCommand = Effect.fn("decideOrchestrationCommand"
           ctfCategory: command.ctfCategory ?? null,
           swarmId: command.swarmId ?? null,
           swarmLabel: command.swarmLabel ?? null,
+          dockerSandbox: command.dockerSandbox ?? null,
           createdAt: command.createdAt,
           updatedAt: command.createdAt,
         },
@@ -265,6 +266,7 @@ export const decideOrchestrationCommand = Effect.fn("decideOrchestrationCommand"
           ...(command.branch !== undefined ? { branch: command.branch } : {}),
           ...(command.worktreePath !== undefined ? { worktreePath: command.worktreePath } : {}),
           ...(command.ctfCategory !== undefined ? { ctfCategory: command.ctfCategory } : {}),
+          ...(command.dockerSandbox !== undefined ? { dockerSandbox: command.dockerSandbox } : {}),
           updatedAt: occurredAt,
         },
       };

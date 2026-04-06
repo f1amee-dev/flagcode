@@ -447,6 +447,7 @@ const makeOrchestrationProjectionPipeline = Effect.fn("makeOrchestrationProjecti
             branch: event.payload.branch,
             worktreePath: event.payload.worktreePath,
             ctfCategory: event.payload.ctfCategory ?? null,
+            dockerSandbox: event.payload.dockerSandbox ?? null,
             latestTurnId: null,
             createdAt: event.payload.createdAt,
             updatedAt: event.payload.updatedAt,
@@ -504,6 +505,9 @@ const makeOrchestrationProjectionPipeline = Effect.fn("makeOrchestrationProjecti
               : {}),
             ...(event.payload.ctfCategory !== undefined
               ? { ctfCategory: event.payload.ctfCategory }
+              : {}),
+            ...(event.payload.dockerSandbox !== undefined
+              ? { dockerSandbox: event.payload.dockerSandbox }
               : {}),
             updatedAt: event.payload.updatedAt,
           });

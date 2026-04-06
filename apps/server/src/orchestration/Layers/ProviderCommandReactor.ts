@@ -273,6 +273,7 @@ const make = Effect.gen(function* () {
         ...(input?.resumeCursor !== undefined ? { resumeCursor: input.resumeCursor } : {}),
         runtimeMode: desiredRuntimeMode,
         ...(thread.ctfCategory ? { ctfCategory: thread.ctfCategory } : {}),
+        ...(thread.dockerSandbox ? { dockerSandbox: true } : {}),
       });
 
     const bindSessionToThread = (session: ProviderSession) =>

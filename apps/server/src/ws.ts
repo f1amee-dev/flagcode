@@ -22,6 +22,7 @@ import {
   type SwarmId,
 } from "@flagcode/contracts";
 import { SwarmGetFindingsError, WS_METHODS, WsRpcGroup } from "@flagcode/shared/rpc";
+import { SANDBOX_IMAGE_NAME, SANDBOX_IMAGE_TAG } from "@flagcode/shared/sandbox";
 import { clamp } from "effect/Number";
 import { HttpRouter, HttpServerRequest } from "effect/unstable/http";
 import { RpcSerialization, RpcServer } from "effect/unstable/rpc";
@@ -64,6 +65,21 @@ import {
   type SessionCredentialChange,
 } from "./auth/Services/SessionCredentialService";
 import { respondToAuthError } from "./auth/http";
+import {
+  SandboxError,
+  SandboxService,
+  type SandboxInstallProgress,
+} from "./sandbox/SandboxService";
+
+/**
+ * Catches a SandboxError from a progress stream and surfaces it as a final
+ * { stage: "pulling", layer: "error", progress: message } event so the
+ * client can display it without needing a typed error channel on the RPC.
+ */
+const sandboxErrorToProgressStream = Stream.catch(
+  (error: SandboxError): Stream.Stream<SandboxInstallProgress> =>
+    Stream.make({ stage: "pulling" as const, layer: "error", progress: error.message }),
+);
 
 function toAuthAccessStreamEvent(
   change: BootstrapCredentialChange | SessionCredentialChange,
@@ -139,6 +155,8 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
           pairingLinks: serverAuth.listPairingLinks().pipe(Effect.orDie),
           clientSessions: serverAuth.listClientSessions(currentSessionId).pipe(Effect.orDie),
         });
+
+      const sandboxService = yield* SandboxService;
 
       const appendSetupScriptActivity = (input: {
         readonly threadId: ThreadId;
@@ -376,6 +394,9 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
                 worktreePath: bootstrap.createThread.worktreePath,
                 ...(bootstrap.createThread.ctfCategory
                   ? { ctfCategory: bootstrap.createThread.ctfCategory }
+                  : {}),
+                ...(bootstrap.createThread.dockerSandbox
+                  ? { dockerSandbox: bootstrap.createThread.dockerSandbox }
                   : {}),
                 createdAt: bootstrap.createThread.createdAt,
               });
@@ -969,6 +990,39 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
               return messageBus.streamFindings(input.swarmId as SwarmId);
             }),
             { "rpc.aggregate": "swarm" },
+          ),
+
+        [WS_METHODS.sandboxGetStatus]: (_input) =>
+          observeRpcEffect(
+            WS_METHODS.sandboxGetStatus,
+            Effect.gen(function* () {
+              const dockerAvailable = yield* sandboxService
+                .isDockerAvailable()
+                .pipe(Effect.catch(() => Effect.succeed(false)));
+              const imageInstalled = dockerAvailable
+                ? yield* sandboxService
+                    .isImageInstalled()
+                    .pipe(Effect.catch(() => Effect.succeed(false)))
+                : false;
+              return {
+                dockerAvailable,
+                imageInstalled,
+                ...(imageInstalled ? { imageTag: `${SANDBOX_IMAGE_NAME}:${SANDBOX_IMAGE_TAG}` } : {}),
+              };
+            }),
+            { "rpc.aggregate": "sandbox" },
+          ),
+        [WS_METHODS.sandboxInstallImage]: (_input) =>
+          observeRpcStream(
+            WS_METHODS.sandboxInstallImage,
+            sandboxService.installImage().pipe(sandboxErrorToProgressStream),
+            { "rpc.aggregate": "sandbox" },
+          ),
+        [WS_METHODS.sandboxBuildImage]: (_input) =>
+          observeRpcStream(
+            WS_METHODS.sandboxBuildImage,
+            sandboxService.buildImage().pipe(sandboxErrorToProgressStream),
+            { "rpc.aggregate": "sandbox" },
           ),
       });
     }),

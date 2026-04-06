@@ -23,6 +23,7 @@ import {
 } from "effect";
 
 import { CheckpointStoreLive } from "../src/checkpointing/Layers/CheckpointStore.ts";
+import { SandboxLayerNoop } from "../src/sandbox/SandboxLayer.ts";
 import { CheckpointStore } from "../src/checkpointing/Services/CheckpointStore.ts";
 import { GitCoreLive } from "../src/git/Layers/GitCore.ts";
 import { GitCore, type GitCoreShape } from "../src/git/Services/GitCore.ts";
@@ -366,6 +367,7 @@ export const makeOrchestrationIntegrationHarness = (
       Layer.provideMerge(ServerSettingsService.layerTest()),
       Layer.provideMerge(ServerConfig.layerTest(workspaceDir, rootDir)),
       Layer.provideMerge(NodeServices.layer),
+      Layer.provideMerge(SandboxLayerNoop),
     );
 
     const runtime = ManagedRuntime.make(layer);

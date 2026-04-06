@@ -621,6 +621,12 @@ export default function ChatView(props: ChatViewProps) {
   const composerInteractionMode = useComposerDraftStore(
     (store) => store.getComposerDraft(composerDraftTarget)?.interactionMode ?? null,
   );
+  const composerCtfCategory = useComposerDraftStore(
+    (store) => store.getComposerDraft(composerDraftTarget)?.ctfCategory ?? null,
+  );
+  const composerDockerSandbox = useComposerDraftStore(
+    (store) => store.getComposerDraft(composerDraftTarget)?.dockerSandbox ?? null,
+  );
   const composerActiveProvider = useComposerDraftStore(
     (store) => store.getComposerDraft(composerDraftTarget)?.activeProvider ?? null,
   );
@@ -794,6 +800,13 @@ export default function ChatView(props: ChatViewProps) {
   const runtimeMode = composerRuntimeMode ?? activeThread?.runtimeMode ?? DEFAULT_RUNTIME_MODE;
   const interactionMode =
     composerInteractionMode ?? activeThread?.interactionMode ?? DEFAULT_INTERACTION_MODE;
+  const ctfCategory =
+    composerCtfCategory ?? activeThread?.ctfCategory ?? draftThread?.ctfCategory ?? null;
+  const dockerSandbox =
+    composerDockerSandbox ??
+    activeThread?.dockerSandbox ??
+    draftThread?.dockerSandbox ??
+    null;
   const isLocalDraftThread = !isServerThread && localDraftThread !== undefined;
   const canCheckoutPullRequestIntoThread = isLocalDraftThread;
   const diffOpen = rawSearch.diff === "1";
@@ -2691,9 +2704,8 @@ export default function ChatView(props: ChatViewProps) {
                       interactionMode,
                       branch: activeThread.branch,
                       worktreePath: activeThread.worktreePath,
-                      ...(activeThread.ctfCategory
-                        ? { ctfCategory: activeThread.ctfCategory }
-                        : {}),
+                      ...(ctfCategory ? { ctfCategory } : {}),
+                      ...(dockerSandbox ? { dockerSandbox } : {}),
                       createdAt: activeThread.createdAt,
                     },
                   }
@@ -3142,6 +3154,7 @@ export default function ChatView(props: ChatViewProps) {
         interactionMode: "default",
         branch: activeThread.branch,
         worktreePath: activeThread.worktreePath,
+        ...(activeThread.dockerSandbox ? { dockerSandbox: activeThread.dockerSandbox } : {}),
         createdAt,
       })
       .then(() => {

@@ -312,6 +312,7 @@ export const OrchestrationThread = Schema.Struct({
   swarmLabel: Schema.NullOr(TrimmedNonEmptyString).pipe(
     Schema.withDecodingDefault(Effect.succeed(null)),
   ),
+  dockerSandbox: Schema.NullOr(Schema.Boolean).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
   latestTurn: Schema.NullOr(OrchestrationLatestTurn),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
@@ -394,6 +395,7 @@ const ThreadCreateCommand = Schema.Struct({
   ctfCategory: Schema.optionalKey(CtfCategory),
   swarmId: Schema.optionalKey(SwarmId),
   swarmLabel: Schema.optionalKey(TrimmedNonEmptyString),
+  dockerSandbox: Schema.optionalKey(Schema.Boolean),
   createdAt: IsoDateTime,
 });
 
@@ -424,6 +426,7 @@ const ThreadMetaUpdateCommand = Schema.Struct({
   branch: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
   worktreePath: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
   ctfCategory: Schema.optional(Schema.NullOr(CtfCategory)),
+  dockerSandbox: Schema.optional(Schema.NullOr(Schema.Boolean)),
 });
 
 const ThreadRuntimeModeSetCommand = Schema.Struct({
@@ -451,6 +454,7 @@ const ThreadTurnStartBootstrapCreateThread = Schema.Struct({
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
   ctfCategory: Schema.optionalKey(CtfCategory),
+  dockerSandbox: Schema.optionalKey(Schema.Boolean),
   createdAt: IsoDateTime,
 });
 
@@ -793,6 +797,7 @@ export const ThreadCreatedPayload = Schema.Struct({
   swarmLabel: Schema.NullOr(TrimmedNonEmptyString).pipe(
     Schema.withDecodingDefault(Effect.succeed(null)),
   ),
+  dockerSandbox: Schema.NullOr(Schema.Boolean).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
 });
@@ -820,6 +825,7 @@ export const ThreadMetaUpdatedPayload = Schema.Struct({
   branch: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
   worktreePath: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
   ctfCategory: Schema.optional(Schema.NullOr(CtfCategory)),
+  dockerSandbox: Schema.optional(Schema.NullOr(Schema.Boolean)),
   updatedAt: IsoDateTime,
 });
 

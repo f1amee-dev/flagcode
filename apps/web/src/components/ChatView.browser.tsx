@@ -319,6 +319,7 @@ function createSnapshotForTargetUser(options: {
         ctfCategory: null,
         swarmId: null,
         swarmLabel: null,
+        dockerSandbox: null,
         latestTurn: null,
         createdAt: NOW_ISO,
         updatedAt: NOW_ISO,
@@ -388,6 +389,7 @@ function addThreadToSnapshot(
         ctfCategory: null,
         swarmId: null,
         swarmLabel: null,
+        dockerSandbox: null,
         latestTurn: null,
         createdAt: NOW_ISO,
         updatedAt: NOW_ISO,
@@ -438,6 +440,7 @@ function createThreadCreatedEvent(threadId: ThreadId, sequence: number): Orchest
       ctfCategory: null,
       swarmId: null,
       swarmLabel: null,
+      dockerSandbox: null,
       createdAt: NOW_ISO,
       updatedAt: NOW_ISO,
     },
@@ -614,6 +617,8 @@ function setDraftThreadWithoutWorktree(): void {
         branch: null,
         worktreePath: null,
         envMode: "local",
+        ctfCategory: null,
+        dockerSandbox: null,
       },
     },
     logicalProjectDraftThreadKeyByLogicalProjectKey: {
@@ -2178,6 +2183,8 @@ describe("ChatView timeline estimator parity (full app)", () => {
           branch: null,
           worktreePath: null,
           envMode: "local",
+          ctfCategory: null,
+          dockerSandbox: null,
         },
       },
       logicalProjectDraftThreadKeyByLogicalProjectKey: {
@@ -2257,6 +2264,8 @@ describe("ChatView timeline estimator parity (full app)", () => {
           branch: "feature/draft",
           worktreePath: "/repo/worktrees/feature-draft",
           envMode: "worktree",
+          ctfCategory: null,
+          dockerSandbox: null,
         },
       },
       logicalProjectDraftThreadKeyByLogicalProjectKey: {
@@ -2323,6 +2332,8 @@ describe("ChatView timeline estimator parity (full app)", () => {
           branch: null,
           worktreePath: null,
           envMode: "local",
+          ctfCategory: null,
+          dockerSandbox: null,
         },
       },
       logicalProjectDraftThreadKeyByLogicalProjectKey: {
@@ -2451,6 +2462,8 @@ describe("ChatView timeline estimator parity (full app)", () => {
           branch: "main",
           worktreePath: null,
           envMode: "worktree",
+          ctfCategory: null,
+          dockerSandbox: null,
         },
       },
       logicalProjectDraftThreadKeyByLogicalProjectKey: {
@@ -2554,6 +2567,8 @@ describe("ChatView timeline estimator parity (full app)", () => {
           branch: "main",
           worktreePath: null,
           envMode: "worktree",
+          ctfCategory: null,
+          dockerSandbox: null,
         },
       },
       logicalProjectDraftThreadKeyByLogicalProjectKey: {

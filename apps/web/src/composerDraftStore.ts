@@ -164,6 +164,8 @@ const PersistedDraftThreadState = Schema.Struct({
   branch: Schema.NullOr(Schema.String),
   worktreePath: Schema.NullOr(Schema.String),
   envMode: DraftThreadEnvModeSchema,
+  ctfCategory: Schema.optionalKey(Schema.NullOr(CtfCategory)),
+  dockerSandbox: Schema.optionalKey(Schema.NullOr(Schema.Boolean)),
   promotedTo: Schema.optionalKey(
     Schema.NullOr(
       Schema.Struct({
@@ -205,6 +207,8 @@ export interface ComposerThreadDraftState {
   activeProvider: ProviderKind | null;
   runtimeMode: RuntimeMode | null;
   interactionMode: ProviderInteractionMode | null;
+  ctfCategory: CtfCategory | null;
+  dockerSandbox: boolean | null;
 }
 
 /**
@@ -225,6 +229,7 @@ export interface DraftSessionState {
   worktreePath: string | null;
   ctfCategory?: CtfCategory | null;
   envMode: DraftThreadEnvMode;
+  dockerSandbox?: boolean | null;
   promotedTo?: ScopedThreadRef | null;
 }
 
@@ -356,6 +361,8 @@ interface ComposerDraftStoreState {
     threadRef: ComposerThreadTarget,
     interactionMode: ProviderInteractionMode | null | undefined,
   ) => void;
+  setCtfCategory: (threadRef: ComposerThreadTarget, ctfCategory: CtfCategory | null | undefined) => void;
+  setDockerSandbox: (threadRef: ComposerThreadTarget, dockerSandbox: boolean | null | undefined) => void;
   addImage: (threadRef: ComposerThreadTarget, image: ComposerImageAttachment) => void;
   addImages: (threadRef: ComposerThreadTarget, images: ComposerImageAttachment[]) => void;
   removeImage: (threadRef: ComposerThreadTarget, imageId: string) => void;
@@ -444,6 +451,8 @@ const EMPTY_THREAD_DRAFT = Object.freeze<ComposerThreadDraftState>({
   activeProvider: null,
   runtimeMode: null,
   interactionMode: null,
+  ctfCategory: null,
+  dockerSandbox: null,
 });
 
 function createEmptyThreadDraft(): ComposerThreadDraftState {
@@ -457,6 +466,8 @@ function createEmptyThreadDraft(): ComposerThreadDraftState {
     activeProvider: null,
     runtimeMode: null,
     interactionMode: null,
+    ctfCategory: null,
+    dockerSandbox: null,
   };
 }
 
@@ -526,7 +537,9 @@ function shouldRemoveDraft(draft: ComposerThreadDraftState): boolean {
     Object.keys(draft.modelSelectionByProvider).length === 0 &&
     draft.activeProvider === null &&
     draft.runtimeMode === null &&
-    draft.interactionMode === null
+    draft.interactionMode === null &&
+    draft.ctfCategory === null &&
+    draft.dockerSandbox === null
   );
 }
 
@@ -1221,6 +1234,11 @@ function normalizePersistedDraftThreads(
         branch: typeof branch === "string" ? branch : null,
         worktreePath: normalizedWorktreePath,
         envMode: normalizeDraftThreadEnvMode(candidateDraftThread.envMode, normalizedWorktreePath),
+        ...(ctfCategory ? { ctfCategory } : {}),
+        dockerSandbox:
+          typeof candidateDraftThread.dockerSandbox === "boolean"
+            ? candidateDraftThread.dockerSandbox
+            : null,
         promotedTo,
       };
     }
@@ -1746,6 +1764,8 @@ function toHydratedThreadDraft(
     activeProvider,
     runtimeMode: persistedDraft.runtimeMode ?? null,
     interactionMode: persistedDraft.interactionMode ?? null,
+    ctfCategory: null,
+    dockerSandbox: null,
   };
 }
 
@@ -2432,6 +2452,62 @@ const composerDraftStore = create<ComposerDraftStoreState>()(
             const nextDraft: ComposerThreadDraftState = {
               ...base,
               interactionMode: nextInteractionMode,
+            };
+            const nextDraftsByThreadKey = { ...state.draftsByThreadKey };
+            if (shouldRemoveDraft(nextDraft)) {
+              delete nextDraftsByThreadKey[threadKey];
+            } else {
+              nextDraftsByThreadKey[threadKey] = nextDraft;
+            }
+            return { draftsByThreadKey: nextDraftsByThreadKey };
+          });
+        },
+        setCtfCategory: (threadRef, ctfCategory) => {
+          const threadKey = resolveComposerDraftKey(get(), threadRef) ?? "";
+          if (threadKey.length === 0) {
+            return;
+          }
+          const nextCtfCategory = ctfCategory ?? null;
+          set((state) => {
+            const existing = state.draftsByThreadKey[threadKey];
+            if (!existing && nextCtfCategory === null) {
+              return state;
+            }
+            const base = existing ?? createEmptyThreadDraft();
+            if (base.ctfCategory === nextCtfCategory) {
+              return state;
+            }
+            const nextDraft: ComposerThreadDraftState = {
+              ...base,
+              ctfCategory: nextCtfCategory,
+            };
+            const nextDraftsByThreadKey = { ...state.draftsByThreadKey };
+            if (shouldRemoveDraft(nextDraft)) {
+              delete nextDraftsByThreadKey[threadKey];
+            } else {
+              nextDraftsByThreadKey[threadKey] = nextDraft;
+            }
+            return { draftsByThreadKey: nextDraftsByThreadKey };
+          });
+        },
+        setDockerSandbox: (threadRef, dockerSandbox) => {
+          const threadKey = resolveComposerDraftKey(get(), threadRef) ?? "";
+          if (threadKey.length === 0) {
+            return;
+          }
+          const nextDockerSandbox = dockerSandbox ?? null;
+          set((state) => {
+            const existing = state.draftsByThreadKey[threadKey];
+            if (!existing && nextDockerSandbox === null) {
+              return state;
+            }
+            const base = existing ?? createEmptyThreadDraft();
+            if (base.dockerSandbox === nextDockerSandbox) {
+              return state;
+            }
+            const nextDraft: ComposerThreadDraftState = {
+              ...base,
+              dockerSandbox: nextDockerSandbox,
             };
             const nextDraftsByThreadKey = { ...state.draftsByThreadKey };
             if (shouldRemoveDraft(nextDraft)) {

@@ -48,6 +48,7 @@ export function buildLocalDraftThread(
     branch: draftThread.branch,
     worktreePath: draftThread.worktreePath,
     ctfCategory: draftThread.ctfCategory ?? null,
+    dockerSandbox: draftThread?.dockerSandbox ?? null,
     turnDiffSummaries: [],
     activities: [],
     proposedPlans: [],

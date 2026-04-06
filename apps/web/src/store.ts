@@ -223,6 +223,7 @@ function mapThread(thread: OrchestrationThread, environmentId: EnvironmentId): T
     branch: thread.branch,
     worktreePath: thread.worktreePath,
     ctfCategory: thread.ctfCategory,
+    dockerSandbox: thread.dockerSandbox ?? null,
     turnDiffSummaries: thread.checkpoints.map(mapTurnDiffSummary),
     activities: thread.activities.map((activity) => ({ ...activity })),
   };
@@ -284,6 +285,8 @@ function buildSidebarThreadSummary(thread: Thread): SidebarThreadSummary {
     latestTurn: thread.latestTurn,
     branch: thread.branch,
     worktreePath: thread.worktreePath,
+    ctfCategory: thread.ctfCategory ?? null,
+    dockerSandbox: thread.dockerSandbox ?? null,
     latestUserMessageAt: getLatestUserMessageAt(thread.messages),
     hasPendingApprovals: derivePendingApprovals(thread.activities).length > 0,
     hasPendingUserInput: derivePendingUserInputs(thread.activities).length > 0,
@@ -1136,6 +1139,7 @@ function applyEnvironmentOrchestrationEvent(
           ctfCategory: event.payload.ctfCategory,
           swarmId: (event.payload as any).swarmId ?? null,
           swarmLabel: (event.payload as any).swarmLabel ?? null,
+          dockerSandbox: event.payload.dockerSandbox,
           latestTurn: null,
           createdAt: event.payload.createdAt,
           updatedAt: event.payload.updatedAt,
@@ -1182,6 +1186,9 @@ function applyEnvironmentOrchestrationEvent(
           : {}),
         ...(event.payload.ctfCategory !== undefined
           ? { ctfCategory: event.payload.ctfCategory }
+          : {}),
+        ...(event.payload.dockerSandbox !== undefined
+          ? { dockerSandbox: event.payload.dockerSandbox }
           : {}),
         updatedAt: event.payload.updatedAt,
       }));

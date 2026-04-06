@@ -79,6 +79,8 @@ import {
 import { ClaudeAdapter, type ClaudeAdapterShape } from "../Services/ClaudeAdapter.ts";
 import { type EventNdjsonLogger, makeEventNdjsonLogger } from "./EventNdjsonLogger.ts";
 import { resolveCtfSystemPrompt, BINARY_NINJA_TOOL_INSTRUCTIONS } from "@flagcode/shared/ctf";
+import { buildSandboxInstructions } from "@flagcode/shared/sandbox";
+import { SandboxService, type SandboxHandle } from "../../sandbox/SandboxService.ts";
 
 const PROVIDER = "claudeAgent" as const;
 type ClaudeTextStreamKind = Extract<RuntimeContentStreamKind, "assistant_text" | "reasoning_text">;
@@ -932,6 +934,8 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
   const sandboxHandles = createSandboxHandleMap();
   const runtimeEventQueue = yield* Queue.unbounded<ProviderRuntimeEvent>();
   const serverSettingsService = yield* ServerSettingsService;
+  const sandboxService = yield* SandboxService;
+  const sandboxHandles = new Map<ThreadId, SandboxHandle>();
 
   const nowIso = Effect.map(DateTime.now, DateTime.formatIso);
   const nextEventId = Effect.map(Random.nextUUIDv4, (id) => EventId.make(id));
@@ -2731,6 +2735,26 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
         ctfSystemPromptAppend = ctfPrompt;
       }
 
+      // Docker sandbox injection
+      if (input.dockerSandbox === true) {
+        const handle = yield* sandboxService.startContainer(input.cwd ?? process.cwd()).pipe(
+          Effect.mapError(
+            (error) =>
+              new ProviderAdapterProcessError({
+                provider: PROVIDER,
+                threadId: input.threadId,
+                detail: `Failed to start Docker sandbox: ${error.message}`,
+                cause: error,
+              }),
+          ),
+        );
+        sandboxHandles.set(input.threadId, handle);
+        const sandboxPrompt = buildSandboxInstructions(handle.containerId, handle.bridgeHost);
+        ctfSystemPromptAppend = ctfSystemPromptAppend
+          ? `${ctfSystemPromptAppend}\n\n${sandboxPrompt}`
+          : sandboxPrompt;
+      }
+
       // Gate Binary Ninja MCP tools based on settings + category
       const bnEnabled = serverSettings.binaryNinjaEnabled;
       const wrappedCanUseTool: CanUseTool = (toolName, toolInput, callbackOptions) => {
@@ -3077,6 +3101,18 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
       yield* stopSessionInternal(context, {
         emitExitEvent: true,
       });
+      const handle = sandboxHandles.get(threadId);
+      if (handle) {
+        sandboxHandles.delete(threadId);
+        yield* sandboxService.stopContainer(handle).pipe(
+          Effect.catch((error) =>
+            Effect.logWarning("Failed to stop sandbox container on session stop", {
+              containerId: handle.containerId,
+              error: error.message,
+            }),
+          ),
+        );
+      }
     },
   );
 
