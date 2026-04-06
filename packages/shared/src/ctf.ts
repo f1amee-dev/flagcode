@@ -3,7 +3,7 @@
  *
  * @module ctf
  */
-import type { CtfCategory } from "@t3tools/contracts";
+import type { CtfCategory } from "@flagcode/contracts";
 
 export interface CtfCategoryInfo {
   readonly id: CtfCategory;

@@ -22,13 +22,13 @@ import type {
   DesktopUpdateActionResult,
   DesktopUpdateCheckResult,
   DesktopUpdateState,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import { autoUpdater } from "electron-updater";
 
-import type { ContextMenuItem } from "@t3tools/contracts";
-import { NetService } from "@t3tools/shared/Net";
-import { RotatingFileSink } from "@t3tools/shared/logging";
-import { parsePersistedServerObservabilitySettings } from "@t3tools/shared/serverSettings";
+import type { ContextMenuItem } from "@flagcode/contracts";
+import { NetService } from "@flagcode/shared/Net";
+import { RotatingFileSink } from "@flagcode/shared/logging";
+import { parsePersistedServerObservabilitySettings } from "@flagcode/shared/serverSettings";
 import { showDesktopConfirmDialog } from "./confirmDialog";
 import { syncShellEnvironment } from "./syncShellEnvironment";
 import { getAutoUpdateDisabledReason, shouldBroadcastDownloadProgress } from "./updateState";
