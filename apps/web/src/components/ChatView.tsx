@@ -19,10 +19,10 @@ import {
   ProviderInteractionMode,
   RuntimeMode,
   TerminalOpenInput,
-} from "@t3tools/contracts";
-import { applyClaudePromptEffortPrefix, normalizeModelSlug } from "@t3tools/shared/model";
-import { projectScriptCwd, projectScriptRuntimeEnv } from "@t3tools/shared/projectScripts";
-import { truncate } from "@t3tools/shared/String";
+} from "@flagcode/contracts";
+import { applyClaudePromptEffortPrefix, normalizeModelSlug } from "@flagcode/shared/model";
+import { projectScriptCwd, projectScriptRuntimeEnv } from "@flagcode/shared/projectScripts";
+import { truncate } from "@flagcode/shared/String";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useDebouncedValue } from "@tanstack/react-pacer";
@@ -155,6 +155,7 @@ import { MessagesTimeline } from "./chat/MessagesTimeline";
 import { ChatHeader } from "./chat/ChatHeader";
 import { ContextWindowMeter } from "./chat/ContextWindowMeter";
 import { buildExpandedImagePreview, ExpandedImagePreview } from "./chat/ExpandedImagePreview";
+import { CtfCategoryPicker } from "./chat/CtfCategoryPicker";
 import { AVAILABLE_PROVIDER_OPTIONS, ProviderModelPicker } from "./chat/ProviderModelPicker";
 import { ComposerCommandItem, ComposerCommandMenu } from "./chat/ComposerCommandMenu";
 import { ComposerPendingApprovalActions } from "./chat/ComposerPendingApprovalActions";
@@ -840,6 +841,8 @@ export default function ChatView({ threadId }: ChatViewProps) {
     composerDraft.runtimeMode ?? activeThread?.runtimeMode ?? DEFAULT_RUNTIME_MODE;
   const interactionMode =
     composerDraft.interactionMode ?? activeThread?.interactionMode ?? DEFAULT_INTERACTION_MODE;
+  const ctfCategory = activeThread?.ctfCategory ?? draftThread?.ctfCategory ?? null;
+  const setCtfCategory = useComposerDraftStore((store) => store.setCtfCategory);
   const isServerThread = serverThread !== undefined;
   const isLocalDraftThread = !isServerThread && localDraftThread !== undefined;
   const canCheckoutPullRequestIntoThread = isLocalDraftThread;
@@ -3059,6 +3062,9 @@ export default function ChatView({ threadId }: ChatViewProps) {
                       interactionMode,
                       branch: activeThread.branch,
                       worktreePath: activeThread.worktreePath,
+                      ...(activeThread.ctfCategory
+                        ? { ctfCategory: activeThread.ctfCategory }
+                        : {}),
                       createdAt: activeThread.createdAt,
                     },
                   }
@@ -4244,6 +4250,14 @@ export default function ChatView({ threadId }: ChatViewProps) {
                               }
                             : {})}
                           onProviderModelChange={onProviderModelSelect}
+                        />
+
+                        {/* CTF category picker */}
+                        <CtfCategoryPicker
+                          value={ctfCategory}
+                          onChange={(category) => setCtfCategory(threadId, category)}
+                          compact={isComposerFooterCompact}
+                          disabled={isServerThread && serverThread.messages.length > 0}
                         />
 
                         {isComposerFooterCompact ? (

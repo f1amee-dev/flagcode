@@ -5,7 +5,7 @@ import {
   MessageId,
   ProjectId,
   ThreadId,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import { describe, expect, it } from "vitest";
 import { Effect } from "effect";
 
@@ -144,6 +144,7 @@ describe("decider project scripts", () => {
           runtimeMode: "approval-required",
           branch: null,
           worktreePath: null,
+          ctfCategory: null,
           createdAt: now,
           updatedAt: now,
         },
@@ -253,6 +254,7 @@ describe("decider project scripts", () => {
           runtimeMode: "full-access",
           branch: null,
           worktreePath: null,
+          ctfCategory: null,
           createdAt: now,
           updatedAt: now,
         },
@@ -335,6 +337,7 @@ describe("decider project scripts", () => {
           runtimeMode: "approval-required",
           branch: null,
           worktreePath: null,
+          ctfCategory: null,
           createdAt: now,
           updatedAt: now,
         },

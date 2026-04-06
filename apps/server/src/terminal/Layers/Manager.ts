@@ -5,8 +5,8 @@ import {
   type TerminalEvent,
   type TerminalSessionSnapshot,
   type TerminalSessionStatus,
-} from "@t3tools/contracts";
-import { makeKeyedCoalescingWorker } from "@t3tools/shared/KeyedCoalescingWorker";
+} from "@flagcode/contracts";
+import { makeKeyedCoalescingWorker } from "@flagcode/shared/KeyedCoalescingWorker";
 import {
   Data,
   Effect,

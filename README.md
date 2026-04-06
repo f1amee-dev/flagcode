@@ -1,11 +1,11 @@
-# T3 Code
+# FlagCode
 
-T3 Code is a minimal web GUI for coding agents (currently Codex and Claude, more coming soon).
+FlagCode is a fork of [T3 Code](https://github.com/pingdotgg/t3code), a minimal web GUI for coding agents. FlagCode is tailored for solving CTF challenges.
 
 ## Installation
 
 > [!WARNING]
-> T3 Code currently supports Codex and Claude.
+> FlagCode currently supports Codex and Claude.
 > Install and authenticate at least one provider before use:
 >
 > - Codex: install [Codex CLI](https://github.com/openai/codex) and run `codex login`
@@ -19,24 +19,24 @@ npx t3
 
 ### Desktop app
 
-Install the latest version of the desktop app from [GitHub Releases](https://github.com/pingdotgg/t3code/releases), or from your favorite package registry:
+Install the latest version of the desktop app from [GitHub Releases](https://github.com/f1amee-dev/flagcode/releases), or from your favorite package registry:
 
 #### Windows (`winget`)
 
 ```bash
-winget install T3Tools.T3Code
+winget install FlagCode.FlagCode
 ```
 
 #### macOS (Homebrew)
 
 ```bash
-brew install --cask t3-code
+brew install --cask flagcode
 ```
 
 #### Arch Linux (AUR)
 
 ```bash
-yay -S t3code-bin
+yay -S flagcode-bin
 ```
 
 ## Some notes

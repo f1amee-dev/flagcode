@@ -5,6 +5,7 @@ import readline from "node:readline";
 
 import {
   ApprovalRequestId,
+  type CtfCategory,
   EventId,
   ProviderItemId,
   ProviderRequestKind,
@@ -17,8 +18,9 @@ import {
   type ProviderTurnStartResult,
   RuntimeMode,
   ProviderInteractionMode,
-} from "@t3tools/contracts";
-import { normalizeModelSlug } from "@t3tools/shared/model";
+} from "@flagcode/contracts";
+import { resolveCtfSystemPrompt } from "@flagcode/shared/ctf";
+import { normalizeModelSlug } from "@flagcode/shared/model";
 import { Effect, ServiceMap } from "effect";
 
 import {
@@ -113,6 +115,8 @@ export interface CodexAppServerSendTurnInput {
   readonly serviceTier?: string | null;
   readonly effort?: string;
   readonly interactionMode?: ProviderInteractionMode;
+  readonly ctfCategory?: CtfCategory;
+  readonly ctfCustomPrompts?: Partial<Record<CtfCategory, string | undefined>>;
 }
 
 export interface CodexAppServerStartSessionInput {
@@ -335,6 +339,8 @@ function buildCodexCollaborationMode(input: {
   readonly interactionMode?: "default" | "plan";
   readonly model?: string;
   readonly effort?: string;
+  readonly ctfCategory?: CtfCategory;
+  readonly ctfCustomPrompts?: Partial<Record<CtfCategory, string | undefined>>;
 }):
   | {
       mode: "default" | "plan";
@@ -349,15 +355,22 @@ function buildCodexCollaborationMode(input: {
     return undefined;
   }
   const model = normalizeCodexModelSlug(input.model) ?? "gpt-5.3-codex";
+  const baseInstructions =
+    input.interactionMode === "plan"
+      ? CODEX_PLAN_MODE_DEVELOPER_INSTRUCTIONS
+      : CODEX_DEFAULT_MODE_DEVELOPER_INSTRUCTIONS;
+  const ctfPrompt = input.ctfCategory
+    ? resolveCtfSystemPrompt(input.ctfCategory, input.ctfCustomPrompts)
+    : undefined;
+  const developerInstructions = ctfPrompt
+    ? `${ctfPrompt}\n\n${baseInstructions}`
+    : baseInstructions;
   return {
     mode: input.interactionMode,
     settings: {
       model,
       reasoning_effort: input.effort ?? "medium",
-      developer_instructions:
-        input.interactionMode === "plan"
-          ? CODEX_PLAN_MODE_DEVELOPER_INSTRUCTIONS
-          : CODEX_DEFAULT_MODE_DEVELOPER_INSTRUCTIONS,
+      developer_instructions: developerInstructions,
     },
   };
 }
@@ -718,6 +731,8 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
       ...(input.interactionMode !== undefined ? { interactionMode: input.interactionMode } : {}),
       ...(normalizedModel !== undefined ? { model: normalizedModel } : {}),
       ...(input.effort !== undefined ? { effort: input.effort } : {}),
+      ...(input.ctfCategory !== undefined ? { ctfCategory: input.ctfCategory } : {}),
+      ...(input.ctfCustomPrompts !== undefined ? { ctfCustomPrompts: input.ctfCustomPrompts } : {}),
     });
     if (collaborationMode) {
       if (!turnStartParams.model) {

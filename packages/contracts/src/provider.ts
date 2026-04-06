@@ -10,6 +10,7 @@ import {
 } from "./baseSchemas";
 import {
   ChatAttachment,
+  CtfCategory,
   ModelSelection,
   PROVIDER_SEND_TURN_MAX_ATTACHMENTS,
   PROVIDER_SEND_TURN_MAX_INPUT_CHARS,
@@ -55,6 +56,7 @@ export const ProviderSessionStartInput = Schema.Struct({
   approvalPolicy: Schema.optional(ProviderApprovalPolicy),
   sandboxMode: Schema.optional(ProviderSandboxMode),
   runtimeMode: RuntimeMode,
+  ctfCategory: Schema.optional(CtfCategory),
 });
 export type ProviderSessionStartInput = typeof ProviderSessionStartInput.Type;
 
@@ -68,6 +70,7 @@ export const ProviderSendTurnInput = Schema.Struct({
   ),
   modelSelection: Schema.optional(ModelSelection),
   interactionMode: Schema.optional(ProviderInteractionMode),
+  ctfCategory: Schema.optional(CtfCategory),
 });
 export type ProviderSendTurnInput = typeof ProviderSendTurnInput.Type;
 

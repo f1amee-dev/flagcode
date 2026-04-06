@@ -1,8 +1,9 @@
-import { ThreadId } from "@t3tools/contracts";
+import { ThreadId } from "@flagcode/contracts";
 import { createFileRoute, retainSearchParams, useNavigate } from "@tanstack/react-router";
 import { Suspense, lazy, type ReactNode, useCallback, useEffect, useState } from "react";
 
 import ChatView from "../components/ChatView";
+import { TabBar } from "../components/TabBar";
 import { DiffWorkerPoolProvider } from "../components/DiffWorkerPoolProvider";
 import {
   DiffPanelHeaderSkeleton,
@@ -11,6 +12,7 @@ import {
   type DiffPanelMode,
 } from "../components/DiffPanelShell";
 import { useComposerDraftStore } from "../composerDraftStore";
+import { useTabStore } from "../tabStore";
 import {
   type DiffRouteSearch,
   parseDiffRouteSearch,
@@ -201,6 +203,36 @@ function ChatThreadRouteView() {
     }
   }, [diffOpen]);
 
+  // Auto-open a tab whenever we navigate to a thread
+  const threadTitle = useStore(
+    (store) => store.threads.find((t) => t.id === threadId)?.title ?? "New thread",
+  );
+  const threadProjectId = useStore(
+    (store) => store.threads.find((t) => t.id === threadId)?.projectId ?? "",
+  );
+  const threadCtfCategory = useStore(
+    (store) => store.threads.find((t) => t.id === threadId)?.ctfCategory ?? null,
+  );
+  const openTab = useTabStore((s) => s.openTab);
+  useEffect(() => {
+    if (bootstrapComplete && routeThreadExists) {
+      openTab({
+        threadId,
+        title: threadTitle,
+        projectId: threadProjectId,
+        ctfCategory: threadCtfCategory,
+      });
+    }
+  }, [
+    bootstrapComplete,
+    routeThreadExists,
+    threadId,
+    threadTitle,
+    threadProjectId,
+    threadCtfCategory,
+    openTab,
+  ]);
+
   useEffect(() => {
     if (!bootstrapComplete) {
       return;
@@ -222,6 +254,7 @@ function ChatThreadRouteView() {
     return (
       <>
         <SidebarInset className="h-dvh  min-h-0 overflow-hidden overscroll-y-none bg-background text-foreground">
+          <TabBar />
           <ChatView threadId={threadId} />
         </SidebarInset>
         <DiffPanelInlineSidebar
@@ -237,6 +270,7 @@ function ChatThreadRouteView() {
   return (
     <>
       <SidebarInset className="h-dvh min-h-0 overflow-hidden overscroll-y-none bg-background text-foreground">
+        <TabBar />
         <ChatView threadId={threadId} />
       </SidebarInset>
       <DiffPanelSheet diffOpen={diffOpen} onCloseDiff={closeDiff}>

@@ -18,7 +18,7 @@ import {
   type TerminalEvent,
   WS_METHODS,
   WsRpcGroup,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import { clamp } from "effect/Number";
 import { HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { RpcSerialization, RpcServer } from "effect/unstable/rpc";
@@ -263,6 +263,9 @@ const WsRpcLayer = WsRpcGroup.toLayer(
               interactionMode: bootstrap.createThread.interactionMode,
               branch: bootstrap.createThread.branch,
               worktreePath: bootstrap.createThread.worktreePath,
+              ...(bootstrap.createThread.ctfCategory
+                ? { ctfCategory: bootstrap.createThread.ctfCategory }
+                : {}),
               createdAt: bootstrap.createThread.createdAt,
             });
             createdThread = true;

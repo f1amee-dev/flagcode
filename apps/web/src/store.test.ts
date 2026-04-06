@@ -8,7 +8,7 @@ import {
   TurnId,
   type OrchestrationEvent,
   type OrchestrationReadModel,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -42,6 +42,7 @@ function makeThread(overrides: Partial<Thread> = {}): Thread {
     latestTurn: null,
     branch: null,
     worktreePath: null,
+    ctfCategory: null,
     ...overrides,
   };
 }
@@ -111,6 +112,7 @@ function makeReadModelThread(overrides: Partial<OrchestrationReadModel["threads"
     branch: null,
     worktreePath: null,
     latestTurn: null,
+    ctfCategory: null,
     createdAt: "2026-02-27T00:00:00.000Z",
     updatedAt: "2026-02-27T00:00:00.000Z",
     archivedAt: null,
@@ -448,6 +450,7 @@ describe("incremental orchestration updates", () => {
         interactionMode: DEFAULT_INTERACTION_MODE,
         branch: null,
         worktreePath: null,
+        ctfCategory: null,
         createdAt: "2026-02-27T00:00:01.000Z",
         updatedAt: "2026-02-27T00:00:01.000Z",
       }),

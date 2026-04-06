@@ -1,4 +1,4 @@
-import type { ServerProviderModel } from "@t3tools/contracts";
+import type { ServerProviderModel } from "@flagcode/contracts";
 
 export type CodexPlanType =
   | "free"

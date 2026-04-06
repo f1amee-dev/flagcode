@@ -7,7 +7,7 @@ import {
   ThreadId,
   type OrchestrationCommand,
   type OrchestrationReadModel,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import { Effect } from "effect";
 
 import {
@@ -64,6 +64,7 @@ const readModel: OrchestrationReadModel = {
       runtimeMode: "full-access",
       branch: null,
       worktreePath: null,
+      ctfCategory: null,
       createdAt: now,
       updatedAt: now,
       archivedAt: null,
@@ -87,6 +88,7 @@ const readModel: OrchestrationReadModel = {
       runtimeMode: "full-access",
       branch: null,
       worktreePath: null,
+      ctfCategory: null,
       createdAt: now,
       updatedAt: now,
       archivedAt: null,

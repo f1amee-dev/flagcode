@@ -41,6 +41,16 @@ export type ProviderSandboxMode = typeof ProviderSandboxMode.Type;
 
 export const DEFAULT_PROVIDER_KIND: ProviderKind = "codex";
 
+export const CtfCategory = Schema.Literals([
+  "crypto",
+  "pwn",
+  "reverse-engineering",
+  "web",
+  "forensics",
+  "misc",
+]);
+export type CtfCategory = typeof CtfCategory.Type;
+
 export const CodexModelSelection = Schema.Struct({
   provider: Schema.Literal("codex"),
   model: TrimmedNonEmptyString,
@@ -277,6 +287,7 @@ export const OrchestrationThread = Schema.Struct({
   ),
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
+  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(() => null)),
   latestTurn: Schema.NullOr(OrchestrationLatestTurn),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
@@ -337,6 +348,7 @@ const ThreadCreateCommand = Schema.Struct({
   ),
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
+  ctfCategory: Schema.optionalKey(CtfCategory),
   createdAt: IsoDateTime,
 });
 
@@ -366,6 +378,7 @@ const ThreadMetaUpdateCommand = Schema.Struct({
   modelSelection: Schema.optional(ModelSelection),
   branch: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
   worktreePath: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
+  ctfCategory: Schema.optional(Schema.NullOr(CtfCategory)),
 });
 
 const ThreadRuntimeModeSetCommand = Schema.Struct({
@@ -392,6 +405,7 @@ const ThreadTurnStartBootstrapCreateThread = Schema.Struct({
   interactionMode: ProviderInteractionMode,
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
+  ctfCategory: Schema.optionalKey(CtfCategory),
   createdAt: IsoDateTime,
 });
 
@@ -678,6 +692,7 @@ export const ThreadCreatedPayload = Schema.Struct({
   ),
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
+  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(() => null)),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
 });
@@ -704,6 +719,7 @@ export const ThreadMetaUpdatedPayload = Schema.Struct({
   modelSelection: Schema.optional(ModelSelection),
   branch: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
   worktreePath: Schema.optional(Schema.NullOr(TrimmedNonEmptyString)),
+  ctfCategory: Schema.optional(Schema.NullOr(CtfCategory)),
   updatedAt: IsoDateTime,
 });
 

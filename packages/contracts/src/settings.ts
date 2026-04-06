@@ -7,7 +7,7 @@ import {
   CodexModelOptions,
   DEFAULT_GIT_TEXT_GENERATION_MODEL_BY_PROVIDER,
 } from "./model";
-import { ModelSelection } from "./orchestration";
+import { CtfCategory, ModelSelection } from "./orchestration";
 
 // ── Client Settings (local-only) ───────────────────────────────
 
@@ -77,6 +77,9 @@ export const ObservabilitySettings = Schema.Struct({
 });
 export type ObservabilitySettings = typeof ObservabilitySettings.Type;
 
+export const CtfCustomPrompts = Schema.Record(CtfCategory, Schema.optionalKey(Schema.String));
+export type CtfCustomPrompts = typeof CtfCustomPrompts.Type;
+
 export const ServerSettings = Schema.Struct({
   enableAssistantStreaming: Schema.Boolean.pipe(Schema.withDecodingDefault(() => false)),
   defaultThreadEnvMode: ThreadEnvMode.pipe(
@@ -95,6 +98,10 @@ export const ServerSettings = Schema.Struct({
     claudeAgent: ClaudeSettings.pipe(Schema.withDecodingDefault(() => ({}))),
   }).pipe(Schema.withDecodingDefault(() => ({}))),
   observability: ObservabilitySettings.pipe(Schema.withDecodingDefault(() => ({}))),
+
+  // CTF settings
+  ctfCustomPrompts: CtfCustomPrompts.pipe(Schema.withDecodingDefault(() => ({}))),
+  binaryNinjaEnabled: Schema.Boolean.pipe(Schema.withDecodingDefault(() => false)),
 });
 export type ServerSettings = typeof ServerSettings.Type;
 
@@ -177,5 +184,7 @@ export const ServerSettingsPatch = Schema.Struct({
       claudeAgent: Schema.optionalKey(ClaudeSettingsPatch),
     }),
   ),
+  ctfCustomPrompts: Schema.optionalKey(CtfCustomPrompts),
+  binaryNinjaEnabled: Schema.optionalKey(Schema.Boolean),
 });
 export type ServerSettingsPatch = typeof ServerSettingsPatch.Type;

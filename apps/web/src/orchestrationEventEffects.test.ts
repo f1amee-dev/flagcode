@@ -6,7 +6,7 @@ import {
   ThreadId,
   TurnId,
   type OrchestrationEvent,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import { describe, expect, it } from "vitest";
 
 import { deriveOrchestrationBatchEffects } from "./orchestrationEventEffects";
@@ -54,6 +54,7 @@ describe("deriveOrchestrationBatchEffects", () => {
         interactionMode: "default",
         branch: null,
         worktreePath: null,
+        ctfCategory: null,
         createdAt: "2026-02-27T00:00:00.000Z",
         updatedAt: "2026-02-27T00:00:00.000Z",
       }),
@@ -91,6 +92,7 @@ describe("deriveOrchestrationBatchEffects", () => {
         interactionMode: "default",
         branch: null,
         worktreePath: null,
+        ctfCategory: null,
         createdAt: "2026-02-27T00:00:02.000Z",
         updatedAt: "2026-02-27T00:00:02.000Z",
       }),

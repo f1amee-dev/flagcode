@@ -2,6 +2,7 @@ import {
   CODEX_REASONING_EFFORT_OPTIONS,
   type ClaudeCodeEffort,
   type CodexReasoningEffort,
+  CtfCategory,
   DEFAULT_MODEL_BY_PROVIDER,
   ModelSelection,
   ProjectId,
@@ -11,11 +12,11 @@ import {
   RuntimeMode,
   type ServerProvider,
   ThreadId,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import * as Schema from "effect/Schema";
 import * as Equal from "effect/Equal";
 import { DeepMutable } from "effect/Types";
-import { normalizeModelSlug } from "@t3tools/shared/model";
+import { normalizeModelSlug } from "@flagcode/shared/model";
 import { useMemo } from "react";
 import { getLocalStorageItem } from "./hooks/useLocalStorage";
 import { resolveAppModelSelection } from "./modelSelection";
@@ -29,9 +30,9 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createDebouncedStorage, createMemoryStorage } from "./lib/storage";
 import { getDefaultServerModel } from "./providerModels";
-import { UnifiedSettings } from "@t3tools/contracts/settings";
+import { UnifiedSettings } from "@flagcode/contracts/settings";
 
-export const COMPOSER_DRAFT_STORAGE_KEY = "t3code:composer-drafts:v1";
+export const COMPOSER_DRAFT_STORAGE_KEY = "flagcode:composer-drafts:v1";
 const COMPOSER_DRAFT_STORAGE_VERSION = 3;
 const DraftThreadEnvModeSchema = Schema.Literals(["local", "worktree"]);
 export type DraftThreadEnvMode = typeof DraftThreadEnvModeSchema.Type;
@@ -136,6 +137,7 @@ const PersistedDraftThreadState = Schema.Struct({
   branch: Schema.NullOr(Schema.String),
   worktreePath: Schema.NullOr(Schema.String),
   envMode: DraftThreadEnvModeSchema,
+  ctfCategory: Schema.optionalKey(Schema.NullOr(CtfCategory)),
 });
 type PersistedDraftThreadState = typeof PersistedDraftThreadState.Type;
 
@@ -147,6 +149,7 @@ const PersistedComposerDraftStoreState = Schema.Struct({
     Schema.Record(ProviderKind, Schema.optionalKey(ModelSelection)),
   ),
   stickyActiveProvider: Schema.optionalKey(Schema.NullOr(ProviderKind)),
+  stickyCtfCategory: Schema.optionalKey(Schema.NullOr(CtfCategory)),
 });
 type PersistedComposerDraftStoreState = typeof PersistedComposerDraftStoreState.Type;
 
@@ -175,6 +178,7 @@ export interface DraftThreadState {
   branch: string | null;
   worktreePath: string | null;
   envMode: DraftThreadEnvMode;
+  ctfCategory: CtfCategory | null;
 }
 
 interface ProjectDraftThread extends DraftThreadState {
@@ -187,6 +191,7 @@ interface ComposerDraftStoreState {
   projectDraftThreadIdByProjectId: Record<ProjectId, ThreadId>;
   stickyModelSelectionByProvider: Partial<Record<ProviderKind, ModelSelection>>;
   stickyActiveProvider: ProviderKind | null;
+  stickyCtfCategory: CtfCategory | null;
   getDraftThreadByProjectId: (projectId: ProjectId) => ProjectDraftThread | null;
   getDraftThread: (threadId: ThreadId) => DraftThreadState | null;
   setProjectDraftThreadId: (
@@ -241,6 +246,7 @@ interface ComposerDraftStoreState {
     threadId: ThreadId,
     interactionMode: ProviderInteractionMode | null | undefined,
   ) => void;
+  setCtfCategory: (threadId: ThreadId, ctfCategory: CtfCategory | null | undefined) => void;
   addImage: (threadId: ThreadId, image: ComposerImageAttachment) => void;
   addImages: (threadId: ThreadId, images: ComposerImageAttachment[]) => void;
   removeImage: (threadId: ThreadId, imageId: string) => void;
@@ -298,6 +304,7 @@ const EMPTY_PERSISTED_DRAFT_STORE_STATE = Object.freeze<PersistedComposerDraftSt
   projectDraftThreadIdByProjectId: {},
   stickyModelSelectionByProvider: {},
   stickyActiveProvider: null,
+  stickyCtfCategory: null,
 });
 
 const EMPTY_IMAGES: ComposerImageAttachment[] = [];
@@ -1049,6 +1056,7 @@ function partializeComposerDraftStoreState(
     projectDraftThreadIdByProjectId: state.projectDraftThreadIdByProjectId,
     stickyModelSelectionByProvider: state.stickyModelSelectionByProvider,
     stickyActiveProvider: state.stickyActiveProvider,
+    stickyCtfCategory: state.stickyCtfCategory,
   };
 }
 
@@ -1110,6 +1118,7 @@ function normalizeCurrentPersistedComposerDraftStoreState(
     projectDraftThreadIdByProjectId,
     stickyModelSelectionByProvider,
     stickyActiveProvider,
+    stickyCtfCategory: null,
   };
 }
 
@@ -1266,6 +1275,7 @@ export const useComposerDraftStore = create<ComposerDraftStoreState>()(
       projectDraftThreadIdByProjectId: {},
       stickyModelSelectionByProvider: {},
       stickyActiveProvider: null,
+      stickyCtfCategory: null,
       getDraftThreadByProjectId: (projectId) => {
         if (projectId.length === 0) {
           return null;
@@ -1317,6 +1327,7 @@ export const useComposerDraftStore = create<ComposerDraftStoreState>()(
             envMode:
               options?.envMode ??
               (nextWorktreePath ? "worktree" : (existingThread?.envMode ?? "local")),
+            ctfCategory: existingThread?.ctfCategory ?? state.stickyCtfCategory ?? null,
           };
           const hasSameProjectMapping = previousThreadIdForProject === threadId;
           const hasSameDraftThread =
@@ -1387,6 +1398,7 @@ export const useComposerDraftStore = create<ComposerDraftStoreState>()(
             worktreePath: nextWorktreePath,
             envMode:
               options.envMode ?? (nextWorktreePath ? "worktree" : (existing.envMode ?? "local")),
+            ctfCategory: existing.ctfCategory ?? null,
           };
           const isUnchanged =
             nextDraftThread.projectId === existing.projectId &&
@@ -1395,7 +1407,8 @@ export const useComposerDraftStore = create<ComposerDraftStoreState>()(
             nextDraftThread.interactionMode === existing.interactionMode &&
             nextDraftThread.branch === existing.branch &&
             nextDraftThread.worktreePath === existing.worktreePath &&
-            nextDraftThread.envMode === existing.envMode;
+            nextDraftThread.envMode === existing.envMode &&
+            nextDraftThread.ctfCategory === existing.ctfCategory;
           if (isUnchanged) {
             return state;
           }
@@ -1853,6 +1866,25 @@ export const useComposerDraftStore = create<ComposerDraftStoreState>()(
           return { draftsByThreadId: nextDraftsByThreadId };
         });
       },
+      setCtfCategory: (threadId, ctfCategory) => {
+        if (threadId.length === 0) {
+          return;
+        }
+        const nextCategory = ctfCategory ?? null;
+        set((state) => {
+          const draftThread = state.draftThreadsByThreadId[threadId];
+          if (draftThread) {
+            return {
+              draftThreadsByThreadId: {
+                ...state.draftThreadsByThreadId,
+                [threadId]: { ...draftThread, ctfCategory: nextCategory },
+              },
+              stickyCtfCategory: nextCategory,
+            };
+          }
+          return { stickyCtfCategory: nextCategory };
+        });
+      },
       addImage: (threadId, image) => {
         if (threadId.length === 0) {
           return;
@@ -2149,7 +2181,12 @@ export const useComposerDraftStore = create<ComposerDraftStoreState>()(
         return {
           ...currentState,
           draftsByThreadId,
-          draftThreadsByThreadId: normalizedPersisted.draftThreadsByThreadId,
+          draftThreadsByThreadId: Object.fromEntries(
+            Object.entries(normalizedPersisted.draftThreadsByThreadId).map(([threadId, dt]) => [
+              threadId,
+              { ...dt, ctfCategory: dt.ctfCategory ?? null },
+            ]),
+          ),
           projectDraftThreadIdByProjectId: normalizedPersisted.projectDraftThreadIdByProjectId,
           stickyModelSelectionByProvider: normalizedPersisted.stickyModelSelectionByProvider ?? {},
           stickyActiveProvider: normalizedPersisted.stickyActiveProvider ?? null,

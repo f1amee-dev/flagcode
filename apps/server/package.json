@@ -1,14 +1,14 @@
 {
-  "name": "t3",
+  "name": "flagcode",
   "version": "0.0.15",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pingdotgg/t3code",
+    "url": "https://github.com/f1amee-dev/flagcode",
     "directory": "apps/server"
   },
   "bin": {
-    "t3": "./dist/bin.mjs"
+    "flagcode": "./dist/bin.mjs"
   },
   "files": [
     "dist"
@@ -35,9 +35,9 @@
   "devDependencies": {
     "@effect/language-service": "catalog:",
     "@effect/vitest": "catalog:",
-    "@t3tools/contracts": "workspace:*",
-    "@t3tools/shared": "workspace:*",
-    "@t3tools/web": "workspace:*",
+    "@flagcode/contracts": "workspace:*",
+    "@flagcode/shared": "workspace:*",
+    "@flagcode/web": "workspace:*",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "tsdown": "catalog:",

@@ -21,7 +21,7 @@ import {
   ThreadId,
   TurnId,
   ProviderSendTurnInput,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import { Effect, FileSystem, Layer, Queue, Schema, ServiceMap, Stream } from "effect";
 
 import {
@@ -1471,6 +1471,10 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
       { concurrency: 1 },
     );
 
+    const currentSettings = yield* serverSettingsService.getSettings.pipe(
+      Effect.mapError((error) => toRequestError(input.threadId, "turn/settings", error)),
+    );
+
     return yield* Effect.tryPromise({
       try: () => {
         const managerInput = {
@@ -1490,6 +1494,8 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
             ? { interactionMode: input.interactionMode }
             : {}),
           ...(codexAttachments.length > 0 ? { attachments: codexAttachments } : {}),
+          ...(input.ctfCategory !== undefined ? { ctfCategory: input.ctfCategory } : {}),
+          ctfCustomPrompts: currentSettings.ctfCustomPrompts,
         };
         return manager.sendTurn(managerInput);
       },

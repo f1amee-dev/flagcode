@@ -1,5 +1,5 @@
 {
-  "name": "@t3tools/shared",
+  "name": "@flagcode/shared",
   "version": "0.0.0-alpha.1",
   "private": true,
   "type": "module",
@@ -51,6 +51,10 @@
     "./projectScripts": {
       "types": "./src/projectScripts.ts",
       "import": "./src/projectScripts.ts"
+    },
+    "./ctf": {
+      "types": "./src/ctf.ts",
+      "import": "./src/ctf.ts"
     }
   },
   "scripts": {
@@ -59,7 +63,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@t3tools/contracts": "workspace:*",
+    "@flagcode/contracts": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {

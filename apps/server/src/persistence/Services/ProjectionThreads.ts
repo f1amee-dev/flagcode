@@ -7,6 +7,7 @@
  * @module ProjectionThreadRepository
  */
 import {
+  CtfCategory,
   IsoDateTime,
   ModelSelection,
   ProjectId,
@@ -14,7 +15,7 @@ import {
   RuntimeMode,
   ThreadId,
   TurnId,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import { Option, Schema, ServiceMap } from "effect";
 import type { Effect } from "effect";
 
@@ -29,6 +30,7 @@ export const ProjectionThread = Schema.Struct({
   interactionMode: ProviderInteractionMode,
   branch: Schema.NullOr(Schema.String),
   worktreePath: Schema.NullOr(Schema.String),
+  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(() => null)),
   latestTurnId: Schema.NullOr(TurnId),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,

@@ -1,5 +1,5 @@
-import { NetService } from "@t3tools/shared/Net";
-import { parsePersistedServerObservabilitySettings } from "@t3tools/shared/serverSettings";
+import { NetService } from "@flagcode/shared/Net";
+import { parsePersistedServerObservabilitySettings } from "@flagcode/shared/serverSettings";
 import { Config, Effect, FileSystem, LogLevel, Option, Path, Schema } from "effect";
 import { Argument, Command, Flag, GlobalFlag } from "effect/unstable/cli";
 
@@ -355,7 +355,7 @@ const commandFlags = {
 } as const;
 
 const rootCommand = Command.make("t3", commandFlags).pipe(
-  Command.withDescription("Run the T3 Code server."),
+  Command.withDescription("Run the FlagCode server."),
   Command.withHandler((flags) =>
     Effect.gen(function* () {
       const logLevel = yield* GlobalFlag.LogLevel;

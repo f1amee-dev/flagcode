@@ -1,6 +1,6 @@
 import "../../index.css";
 
-import { DEFAULT_SERVER_SETTINGS, type NativeApi, type ServerConfig } from "@t3tools/contracts";
+import { DEFAULT_SERVER_SETTINGS, type NativeApi, type ServerConfig } from "@flagcode/contracts";
 import { page } from "vitest/browser";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
@@ -13,7 +13,7 @@ import { GeneralSettingsPanel } from "./SettingsPanels";
 function createBaseServerConfig(): ServerConfig {
   return {
     cwd: "/repo/project",
-    keybindingsConfigPath: "/repo/project/.t3code-keybindings.json",
+    keybindingsConfigPath: "/repo/project/.flagcode-keybindings.json",
     keybindings: [],
     issues: [],
     providers: [],

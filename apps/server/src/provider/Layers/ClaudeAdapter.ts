@@ -39,13 +39,13 @@ import {
   TurnId,
   type UserInputQuestion,
   ClaudeCodeEffort,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import {
   applyClaudePromptEffortPrefix,
   resolveApiModelId,
   resolveEffort,
   trimOrNull,
-} from "@t3tools/shared/model";
+} from "@flagcode/shared/model";
 import {
   Cause,
   DateTime,
@@ -75,6 +75,7 @@ import {
 } from "../Errors.ts";
 import { ClaudeAdapter, type ClaudeAdapterShape } from "../Services/ClaudeAdapter.ts";
 import { type EventNdjsonLogger, makeEventNdjsonLogger } from "./EventNdjsonLogger.ts";
+import { resolveCtfSystemPrompt, BINARY_NINJA_TOOL_INSTRUCTIONS } from "@flagcode/shared/ctf";
 
 const PROVIDER = "claudeAgent" as const;
 type ClaudeTextStreamKind = Extract<RuntimeContentStreamKind, "assistant_text" | "reasoning_text">;
@@ -2699,6 +2700,46 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
         ...(fastMode ? { fastMode: true } : {}),
       };
 
+      // CTF system prompt injection
+      const serverSettings = yield* serverSettingsService.getSettings.pipe(
+        Effect.mapError(
+          (error) =>
+            new ProviderAdapterProcessError({
+              provider: PROVIDER,
+              threadId: input.threadId,
+              detail: error.message,
+              cause: error,
+            }),
+        ),
+      );
+      const ctfCategory = input.ctfCategory;
+      let ctfSystemPromptAppend: string | undefined;
+      if (ctfCategory) {
+        let ctfPrompt = resolveCtfSystemPrompt(ctfCategory, serverSettings.ctfCustomPrompts);
+        if (
+          serverSettings.binaryNinjaEnabled &&
+          (ctfCategory === "pwn" || ctfCategory === "reverse-engineering")
+        ) {
+          ctfPrompt += "\n\n" + BINARY_NINJA_TOOL_INSTRUCTIONS;
+        }
+        ctfSystemPromptAppend = ctfPrompt;
+      }
+
+      // Gate Binary Ninja MCP tools based on settings + category
+      const bnEnabled = serverSettings.binaryNinjaEnabled;
+      const wrappedCanUseTool: CanUseTool = (toolName, toolInput, callbackOptions) => {
+        if (typeof toolName === "string" && toolName.startsWith("mcp__binary_ninja_mcp__")) {
+          if (!bnEnabled || (ctfCategory !== "pwn" && ctfCategory !== "reverse-engineering")) {
+            return Promise.resolve({
+              behavior: "deny" as const,
+              message:
+                "Binary Ninja tools are only available for Pwn and Reverse Engineering categories with Binary Ninja enabled.",
+            });
+          }
+        }
+        return canUseTool(toolName, toolInput, callbackOptions);
+      };
+
       const queryOptions: ClaudeQueryOptions = {
         ...(input.cwd ? { cwd: input.cwd } : {}),
         ...(apiModelId ? { model: apiModelId } : {}),
@@ -2713,9 +2754,18 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
         ...(existingResumeSessionId ? { resume: existingResumeSessionId } : {}),
         ...(newSessionId ? { sessionId: newSessionId } : {}),
         includePartialMessages: true,
-        canUseTool,
+        canUseTool: wrappedCanUseTool,
         env: process.env,
         ...(input.cwd ? { additionalDirectories: [input.cwd] } : {}),
+        ...(ctfSystemPromptAppend
+          ? {
+              systemPrompt: {
+                type: "preset" as const,
+                preset: "claude_code" as const,
+                append: ctfSystemPromptAppend,
+              },
+            }
+          : {}),
       };
 
       const queryRuntime = yield* Effect.try({
