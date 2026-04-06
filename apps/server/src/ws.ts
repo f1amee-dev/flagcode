@@ -15,6 +15,7 @@ import {
   ProjectWriteFileError,
   OrchestrationReplayEventsError,
   ThreadId,
+  TextGenerationError,
   type TerminalEvent,
   WS_METHODS,
   WsRpcGroup,
@@ -27,6 +28,7 @@ import { CheckpointDiffQuery } from "./checkpointing/Services/CheckpointDiffQuer
 import { ServerConfig } from "./config";
 import { GitCore } from "./git/Services/GitCore";
 import { GitManager } from "./git/Services/GitManager";
+import { TextGeneration } from "./git/Services/TextGeneration";
 import { Keybindings } from "./keybindings";
 import { Open, resolveAvailableEditors } from "./open";
 import { normalizeDispatchCommand } from "./orchestration/Normalizer";
@@ -65,6 +67,7 @@ const WsRpcLayer = WsRpcGroup.toLayer(
     const workspaceEntries = yield* WorkspaceEntries;
     const workspaceFileSystem = yield* WorkspaceFileSystem;
     const projectSetupScriptRunner = yield* ProjectSetupScriptRunner;
+    const textGeneration = yield* TextGeneration;
 
     const serverCommandId = (tag: string) =>
       CommandId.makeUnsafe(`server:${tag}:${crypto.randomUUID()}`);
@@ -562,6 +565,38 @@ const WsRpcLayer = WsRpcGroup.toLayer(
         observeRpcEffect(WS_METHODS.shellOpenInEditor, open.openInEditor(input), {
           "rpc.aggregate": "workspace",
         }),
+      [WS_METHODS.writeupGenerate]: (input) =>
+        observeRpcEffect(
+          WS_METHODS.writeupGenerate,
+          Effect.gen(function* () {
+            const result = yield* textGeneration.generateWriteup({
+              cwd: input.cwd,
+              threadTitle: input.threadTitle,
+              ctfCategory: input.ctfCategory,
+              messages: input.messages,
+              modelSelection: input.modelSelection,
+            });
+            const relativePath = "writeup.md";
+            yield* workspaceFileSystem
+              .writeFile({
+                cwd: input.cwd,
+                relativePath,
+                contents: result.writeup,
+              })
+              .pipe(
+                Effect.mapError(
+                  (cause) =>
+                    new TextGenerationError({
+                      operation: "generateWriteup",
+                      detail: `Failed to write writeup file: ${cause instanceof Error ? cause.message : "Unknown error"}`,
+                      cause,
+                    }),
+                ),
+              );
+            return { relativePath, writeup: result.writeup };
+          }),
+          { "rpc.aggregate": "writeup" },
+        ),
       [WS_METHODS.gitStatus]: (input) =>
         observeRpcEffect(WS_METHODS.gitStatus, gitManager.status(input), {
           "rpc.aggregate": "git",

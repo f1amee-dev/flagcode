@@ -4,6 +4,7 @@ import * as RpcGroup from "effect/unstable/rpc/RpcGroup";
 
 import { OpenError, OpenInEditorInput } from "./editor";
 import {
+  TextGenerationError,
   GitActionProgressEvent,
   GitCheckoutInput,
   GitCommandError,
@@ -49,6 +50,7 @@ import {
   ProjectWriteFileInput,
   ProjectWriteFileResult,
 } from "./project";
+import { WriteupGenerateInput, WriteupGenerateResult } from "./writeup";
 import {
   TerminalClearInput,
   TerminalCloseInput,
@@ -108,6 +110,9 @@ export const WS_METHODS = {
   serverUpsertKeybinding: "server.upsertKeybinding",
   serverGetSettings: "server.getSettings",
   serverUpdateSettings: "server.updateSettings",
+
+  // Writeup methods
+  writeupGenerate: "writeup.generate",
 
   // Streaming subscriptions
   subscribeOrchestrationDomainEvents: "subscribeOrchestrationDomainEvents",
@@ -321,6 +326,12 @@ export const WsSubscribeServerLifecycleRpc = Rpc.make(WS_METHODS.subscribeServer
   stream: true,
 });
 
+export const WsWriteupGenerateRpc = Rpc.make(WS_METHODS.writeupGenerate, {
+  payload: WriteupGenerateInput,
+  success: WriteupGenerateResult,
+  error: TextGenerationError,
+});
+
 export const WsRpcGroup = RpcGroup.make(
   WsServerGetConfigRpc,
   WsServerRefreshProvidersRpc,
@@ -356,4 +367,5 @@ export const WsRpcGroup = RpcGroup.make(
   WsOrchestrationGetTurnDiffRpc,
   WsOrchestrationGetFullThreadDiffRpc,
   WsOrchestrationReplayEventsRpc,
+  WsWriteupGenerateRpc,
 );

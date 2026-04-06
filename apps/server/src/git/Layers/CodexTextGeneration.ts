@@ -20,6 +20,7 @@ import {
   buildCommitMessagePrompt,
   buildPrContentPrompt,
   buildThreadTitlePrompt,
+  buildWriteupPrompt,
 } from "../Prompts.ts";
 import {
   normalizeCliError,
@@ -90,7 +91,8 @@ const makeCodexTextGeneration = Effect.gen(function* () {
       | "generateCommitMessage"
       | "generatePrContent"
       | "generateBranchName"
-      | "generateThreadTitle",
+      | "generateThreadTitle"
+      | "generateWriteup",
     attachments: BranchNameGenerationInput["attachments"],
   ): Effect.fn.Return<MaterializedImageAttachments, TextGenerationError> {
     if (!attachments || attachments.length === 0) {
@@ -134,7 +136,8 @@ const makeCodexTextGeneration = Effect.gen(function* () {
       | "generateCommitMessage"
       | "generatePrContent"
       | "generateBranchName"
-      | "generateThreadTitle";
+      | "generateThreadTitle"
+      | "generateWriteup";
     cwd: string;
     prompt: string;
     outputSchemaJson: S;
@@ -405,11 +408,41 @@ const makeCodexTextGeneration = Effect.gen(function* () {
     } satisfies ThreadTitleGenerationResult;
   });
 
+  const generateWriteup: TextGenerationShape["generateWriteup"] = Effect.fn(
+    "CodexTextGeneration.generateWriteup",
+  )(function* (input) {
+    const { prompt, outputSchema } = buildWriteupPrompt({
+      threadTitle: input.threadTitle,
+      ctfCategory: input.ctfCategory,
+      messages: input.messages,
+    });
+
+    if (input.modelSelection.provider !== "codex") {
+      return yield* new TextGenerationError({
+        operation: "generateWriteup",
+        detail: "Invalid model selection.",
+      });
+    }
+
+    const generated = yield* runCodexJson({
+      operation: "generateWriteup",
+      cwd: input.cwd,
+      prompt,
+      outputSchemaJson: outputSchema,
+      modelSelection: input.modelSelection,
+    });
+
+    return {
+      writeup: generated.writeup.trim(),
+    };
+  });
+
   return {
     generateCommitMessage,
     generatePrContent,
     generateBranchName,
     generateThreadTitle,
+    generateWriteup,
   } satisfies TextGenerationShape;
 });
 

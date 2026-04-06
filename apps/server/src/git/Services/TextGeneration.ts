@@ -73,6 +73,19 @@ export interface ThreadTitleGenerationResult {
   title: string;
 }
 
+export interface WriteupGenerationInput {
+  cwd: string;
+  threadTitle: string;
+  ctfCategory: string | null;
+  messages: ReadonlyArray<{ role: string; text: string }>;
+  /** What model and provider to use for generation. */
+  modelSelection: ModelSelection;
+}
+
+export interface WriteupGenerationResult {
+  writeup: string;
+}
+
 export interface TextGenerationService {
   generateCommitMessage(
     input: CommitMessageGenerationInput,
@@ -80,6 +93,7 @@ export interface TextGenerationService {
   generatePrContent(input: PrContentGenerationInput): Promise<PrContentGenerationResult>;
   generateBranchName(input: BranchNameGenerationInput): Promise<BranchNameGenerationResult>;
   generateThreadTitle(input: ThreadTitleGenerationInput): Promise<ThreadTitleGenerationResult>;
+  generateWriteup(input: WriteupGenerationInput): Promise<WriteupGenerationResult>;
 }
 
 /**
@@ -113,6 +127,13 @@ export interface TextGenerationShape {
   readonly generateThreadTitle: (
     input: ThreadTitleGenerationInput,
   ) => Effect.Effect<ThreadTitleGenerationResult, TextGenerationError>;
+
+  /**
+   * Generate a CTF writeup from conversation context.
+   */
+  readonly generateWriteup: (
+    input: WriteupGenerationInput,
+  ) => Effect.Effect<WriteupGenerationResult, TextGenerationError>;
 }
 
 /**

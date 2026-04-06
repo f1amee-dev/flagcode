@@ -3936,6 +3936,8 @@ export default function ChatView({ threadId }: ChatViewProps) {
           activeThreadId={activeThread.id}
           activeThreadTitle={activeThread.title}
           activeProjectName={activeProject?.name}
+          ctfCategory={activeThread.ctfCategory ?? null}
+          projectCwd={gitCwd}
           isGitRepo={isGitRepo}
           openInCwd={gitCwd}
           activeProjectScripts={activeProject?.scripts}

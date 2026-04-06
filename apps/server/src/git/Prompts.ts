@@ -181,6 +181,44 @@ export interface ThreadTitlePromptInput {
   attachments?: ReadonlyArray<ChatAttachment> | undefined;
 }
 
+// ---------------------------------------------------------------------------
+// CTF writeup
+// ---------------------------------------------------------------------------
+
+export interface WriteupPromptInput {
+  threadTitle: string;
+  ctfCategory: string | null;
+  messages: ReadonlyArray<{ role: string; text: string }>;
+}
+
+export function buildWriteupPrompt(input: WriteupPromptInput) {
+  const conversationLines = input.messages.map((m) => `[${m.role}]: ${m.text}`).join("\n\n");
+
+  const prompt = [
+    "You write CTF challenge writeups.",
+    "Return a JSON object with key: writeup. The value is a markdown string.",
+    "Rules:",
+    "- Write as if a human wrote it. Use simple, plain language.",
+    "- No em dashes. No emojis. No complex showcase patterns.",
+    "- Do not use excessive bullet points. Prefer paragraphs and short code blocks.",
+    "- Structure: brief intro of the challenge, the approach taken step by step, key discoveries, and the flag.",
+    "- Make it replicable: someone reading it should be able to follow the same steps to capture the flag.",
+    "- Keep it concise but thorough enough to be useful.",
+    "",
+    `Challenge title: ${input.threadTitle}`,
+    ...(input.ctfCategory ? [`Category: ${input.ctfCategory}`] : []),
+    "",
+    "Conversation:",
+    limitSection(conversationLines, 60_000),
+  ].join("\n");
+
+  const outputSchema = Schema.Struct({
+    writeup: Schema.String,
+  });
+
+  return { prompt, outputSchema };
+}
+
 export function buildThreadTitlePrompt(input: ThreadTitlePromptInput) {
   const prompt = buildPromptFromMessage({
     instruction: "You write concise thread titles for coding conversations.",

@@ -1,4 +1,5 @@
 import {
+  type CtfCategory,
   type EditorId,
   type ProjectScript,
   type ResolvedKeybindingsConfig,
@@ -6,6 +7,7 @@ import {
 } from "@flagcode/contracts";
 import { memo } from "react";
 import GitActionsControl from "../GitActionsControl";
+import WriteupButton from "../WriteupButton";
 import { DiffIcon, TerminalSquareIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
@@ -18,6 +20,8 @@ interface ChatHeaderProps {
   activeThreadId: ThreadId;
   activeThreadTitle: string;
   activeProjectName: string | undefined;
+  ctfCategory: CtfCategory | null;
+  projectCwd: string | null;
   isGitRepo: boolean;
   openInCwd: string | null;
   activeProjectScripts: ProjectScript[] | undefined;
@@ -42,6 +46,8 @@ export const ChatHeader = memo(function ChatHeader({
   activeThreadId,
   activeThreadTitle,
   activeProjectName,
+  ctfCategory,
+  projectCwd,
   isGitRepo,
   openInCwd,
   activeProjectScripts,
@@ -100,6 +106,9 @@ export const ChatHeader = memo(function ChatHeader({
             availableEditors={availableEditors}
             openInCwd={openInCwd}
           />
+        )}
+        {ctfCategory && projectCwd && (
+          <WriteupButton cwd={projectCwd} activeThreadId={activeThreadId} />
         )}
         {activeProjectName && <GitActionsControl gitCwd={gitCwd} activeThreadId={activeThreadId} />}
         <Tooltip>

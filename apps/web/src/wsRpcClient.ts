@@ -43,6 +43,9 @@ interface GitRunStackedActionOptions {
 export interface WsRpcClient {
   readonly dispose: () => Promise<void>;
   readonly reconnect: () => Promise<void>;
+  readonly writeup: {
+    readonly generate: RpcUnaryMethod<typeof WS_METHODS.writeupGenerate>;
+  };
   readonly terminal: {
     readonly open: RpcUnaryMethod<typeof WS_METHODS.terminalOpen>;
     readonly write: RpcUnaryMethod<typeof WS_METHODS.terminalWrite>;
@@ -122,6 +125,9 @@ export function createWsRpcClient(transport = new WsTransport()): WsRpcClient {
     reconnect: async () => {
       resetWsReconnectBackoff();
       await transport.reconnect();
+    },
+    writeup: {
+      generate: (input) => transport.request((client) => client[WS_METHODS.writeupGenerate](input)),
     },
     terminal: {
       open: (input) => transport.request((client) => client[WS_METHODS.terminalOpen](input)),

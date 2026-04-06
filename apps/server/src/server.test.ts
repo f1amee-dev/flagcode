@@ -76,6 +76,7 @@ import {
 import { WorkspaceEntriesLive } from "./workspace/Layers/WorkspaceEntries.ts";
 import { WorkspaceFileSystemLive } from "./workspace/Layers/WorkspaceFileSystem.ts";
 import { WorkspacePathsLive } from "./workspace/Layers/WorkspacePaths.ts";
+import { TextGeneration, type TextGenerationShape } from "./git/Services/TextGeneration.ts";
 
 const defaultProjectId = ProjectId.makeUnsafe("project-default");
 const defaultThreadId = ThreadId.makeUnsafe("thread-default");
@@ -261,6 +262,7 @@ const buildAppUnderTest = (options?: {
     browserTraceCollector?: Partial<BrowserTraceCollectorShape>;
     serverLifecycleEvents?: Partial<ServerLifecycleEventsShape>;
     serverRuntimeStartup?: Partial<ServerRuntimeStartupShape>;
+    textGeneration?: Partial<TextGenerationShape>;
   };
 }) =>
   Effect.gen(function* () {
@@ -404,6 +406,11 @@ const buildAppUnderTest = (options?: {
           markHttpListening: Effect.void,
           enqueueCommand: (effect) => effect,
           ...options?.layers?.serverRuntimeStartup,
+        }),
+      ),
+      Layer.provide(
+        Layer.mock(TextGeneration)({
+          ...options?.layers?.textGeneration,
         }),
       ),
       Layer.provide(workspaceAndProjectServicesLayer),
