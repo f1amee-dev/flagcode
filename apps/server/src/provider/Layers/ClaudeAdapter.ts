@@ -62,6 +62,7 @@ import {
 } from "effect";
 
 import { resolveAttachmentPath } from "../../attachmentStore.ts";
+import { createSandboxHandleMap } from "../../sandbox/SandboxHandles.ts";
 import { ServerConfig } from "../../config.ts";
 import { ServerSettingsService } from "../../serverSettings.ts";
 import { getClaudeModelCapabilities } from "./ClaudeProvider.ts";
@@ -931,6 +932,7 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
     }) => query({ prompt: input.prompt, options: input.options }) as ClaudeQueryRuntime);
 
   const sessions = new Map<ThreadId, ClaudeSessionContext>();
+  const sandboxHandles = createSandboxHandleMap();
   const runtimeEventQueue = yield* Queue.unbounded<ProviderRuntimeEvent>();
   const serverSettingsService = yield* ServerSettingsService;
 
@@ -2337,6 +2339,7 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
       });
     }
 
+    yield* sandboxHandles.stopOne(context.session.threadId);
     sessions.delete(context.session.threadId);
   });
 
@@ -2783,6 +2786,23 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
           }),
       });
 
+      // -- Sandbox container lifecycle hook ---------------------------------
+      // When sandbox container support is added, create the container here
+      // and register it with `sandboxHandles.register(handle)`.
+      //
+      // Use `Effect.ensuring` so that if any subsequent step in startSession
+      // fails the container is torn down:
+      //
+      //   const handle = yield* createSandboxContainer(input);
+      //   sandboxHandles.register(handle);
+      //   yield* Effect.ensuring(
+      //     remainingStartupSteps,
+      //     Effect.suspend(() =>
+      //       sessions.has(threadId) ? Effect.void : sandboxHandles.stopOne(threadId),
+      //     ),
+      //   );
+      // -------------------------------------------------------------------
+
       const session: ProviderSession = {
         threadId,
         provider: PROVIDER,
@@ -3075,6 +3095,10 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
           emitExitEvent: true,
         }),
       { discard: true },
+    ).pipe(
+      // Drain any orphaned sandbox handles that outlived their session
+      // (e.g. startSession failed after container creation).
+      Effect.tap(() => sandboxHandles.stopAll()),
     );
 
   yield* Effect.addFinalizer(() =>
@@ -3085,7 +3109,10 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
           emitExitEvent: false,
         }),
       { discard: true },
-    ).pipe(Effect.tap(() => Queue.shutdown(runtimeEventQueue))),
+    ).pipe(
+      Effect.tap(() => sandboxHandles.stopAll()),
+      Effect.tap(() => Queue.shutdown(runtimeEventQueue)),
+    ),
   );
 
   return {

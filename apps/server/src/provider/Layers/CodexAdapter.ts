@@ -38,6 +38,7 @@ import {
   type CodexAppServerStartSessionInput,
 } from "../../codexAppServerManager.ts";
 import { resolveAttachmentPath } from "../../attachmentStore.ts";
+import { createSandboxHandleMap } from "../../sandbox/SandboxHandles.ts";
 import { ServerConfig } from "../../config.ts";
 import { ServerSettingsService } from "../../serverSettings.ts";
 import { type EventNdjsonLogger, makeEventNdjsonLogger } from "./EventNdjsonLogger.ts";
@@ -1375,8 +1376,9 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
       } catch {
         // Finalizers should never fail and block shutdown.
       }
-    }),
+    }).pipe(Effect.tap(() => sandboxHandles.stopAll())),
   );
+  const sandboxHandles = createSandboxHandleMap();
   const serverSettingsService = yield* ServerSettingsService;
 
   const startSession: CodexAdapterShape["startSession"] = Effect.fn("startSession")(
@@ -1418,6 +1420,25 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
           ? { serviceTier: "fast" }
           : {}),
       };
+
+      // -- Sandbox container lifecycle hook ---------------------------------
+      // When sandbox container support is added, create the container here
+      // and register it with `sandboxHandles.register(handle)`.
+      //
+      // Use `Effect.ensuring` so that if `manager.startSession` or any
+      // subsequent step fails the container is torn down:
+      //
+      //   const handle = yield* createSandboxContainer(input);
+      //   sandboxHandles.register(handle);
+      //   return yield* Effect.ensuring(
+      //     Effect.tryPromise({ try: () => manager.startSession(managerInput), ... }),
+      //     Effect.suspend(() =>
+      //       manager.hasSession(input.threadId)
+      //         ? Effect.void
+      //         : sandboxHandles.stopOne(input.threadId),
+      //     ),
+      //   );
+      // -------------------------------------------------------------------
 
       return yield* Effect.tryPromise({
         try: () => manager.startSession(managerInput),
@@ -1564,8 +1585,9 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
     });
 
   const stopSession: CodexAdapterShape["stopSession"] = (threadId) =>
-    Effect.sync(() => {
+    Effect.gen(function* () {
       manager.stopSession(threadId);
+      yield* sandboxHandles.stopOne(threadId);
     });
 
   const listSessions: CodexAdapterShape["listSessions"] = () =>
@@ -1575,8 +1597,11 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
     Effect.sync(() => manager.hasSession(threadId));
 
   const stopAll: CodexAdapterShape["stopAll"] = () =>
-    Effect.sync(() => {
+    Effect.gen(function* () {
       manager.stopAll();
+      // Drain any orphaned sandbox handles that outlived their session
+      // (e.g. startSession failed after container creation).
+      yield* sandboxHandles.stopAll();
     });
 
   const runtimeEventQueue = yield* Queue.unbounded<ProviderRuntimeEvent>();
