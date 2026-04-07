@@ -333,7 +333,6 @@ const makeProviderService = Effect.fn("makeProviderService")(function* (
           );
         }
 
-        // enforce cwd
         if (input.sandboxMode !== undefined && !input.cwd) {
           return yield* toValidationError(
             "ProviderService.startSession",
