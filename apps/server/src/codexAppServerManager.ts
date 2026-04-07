@@ -457,7 +457,13 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
     let context: CodexSessionContext | undefined;
 
     try {
-      const resolvedCwd = input.cwd ?? process.cwd();
+      if (!input.cwd) {
+        throw new Error(
+          "CodexAppServerManager.startSession requires an explicit 'cwd'. " +
+            "Refusing to fall back to the server process directory.",
+        );
+      }
+      const resolvedCwd = input.cwd;
 
       const session: ProviderSession = {
         provider: "codex",

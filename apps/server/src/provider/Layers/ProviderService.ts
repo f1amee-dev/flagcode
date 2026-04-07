@@ -332,6 +332,16 @@ const makeProviderService = Effect.fn("makeProviderService")(function* (
             `Provider '${input.provider}' is disabled in FlagCode settings.`,
           );
         }
+
+        // enforce cwd
+        if (input.sandboxMode !== undefined && !input.cwd) {
+          return yield* toValidationError(
+            "ProviderService.startSession",
+            `A working directory ('cwd') is required when sandboxMode is '${input.sandboxMode}'. ` +
+              `Refusing to fall back to the server process directory.`,
+          );
+        }
+
         const persistedBinding = Option.getOrUndefined(yield* directory.getBinding(threadId));
         const effectiveResumeCursor =
           input.resumeCursor ??
