@@ -1,4 +1,4 @@
-import { WsRpcGroup } from "@flagcode/contracts";
+import { WsRpcGroup } from "@flagcode/shared/rpc";
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { AtomRpc } from "effect/unstable/reactivity";
 

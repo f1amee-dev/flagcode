@@ -17,9 +17,9 @@ import {
   ResolvedKeybindingRule,
   ThreadId,
   WS_METHODS,
-  WsRpcGroup,
   EditorId,
 } from "@flagcode/contracts";
+import { WsRpcGroup } from "@flagcode/shared/rpc";
 import { assert, it } from "@effect/vitest";
 import { assertFailure, assertInclude, assertTrue } from "@effect/vitest/utils";
 import { Effect, FileSystem, Layer, ManagedRuntime, Path, Stream } from "effect";

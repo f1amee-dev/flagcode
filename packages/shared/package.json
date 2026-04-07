@@ -55,6 +55,10 @@
     "./ctf": {
       "types": "./src/ctf.ts",
       "import": "./src/ctf.ts"
+    },
+    "./rpc": {
+      "types": "./src/rpc.ts",
+      "import": "./src/rpc.ts"
     }
   },
   "scripts": {

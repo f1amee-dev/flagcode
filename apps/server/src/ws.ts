@@ -18,8 +18,8 @@ import {
   TextGenerationError,
   type TerminalEvent,
   WS_METHODS,
-  WsRpcGroup,
 } from "@flagcode/contracts";
+import { WsRpcGroup } from "@flagcode/shared/rpc";
 import { clamp } from "effect/Number";
 import { HttpRouter, HttpServerRequest, HttpServerResponse } from "effect/unstable/http";
 import { RpcSerialization, RpcServer } from "effect/unstable/rpc";
