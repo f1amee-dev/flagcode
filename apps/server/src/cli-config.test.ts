@@ -18,12 +18,15 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
     otlpTracesUrl: undefined,
     otlpMetricsUrl: undefined,
     otlpExportIntervalMs: 10_000,
-    otlpServiceName: "t3-server",
+    otlpServiceName: "flagcode-server",
   } as const;
 
   const openBootstrapFd = Effect.fn(function* (payload: Record<string, unknown>) {
     const fs = yield* FileSystem.FileSystem;
-    const filePath = yield* fs.makeTempFileScoped({ prefix: "t3-bootstrap-", suffix: ".ndjson" });
+    const filePath = yield* fs.makeTempFileScoped({
+      prefix: "flagcode-bootstrap-",
+      suffix: ".ndjson",
+    });
     yield* fs.writeFileString(filePath, `${JSON.stringify(payload)}\n`);
     const { fd } = yield* fs.open(filePath, { flag: "r" });
     return fd;
@@ -32,7 +35,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
   it.effect("falls back to effect/config values when flags are omitted", () =>
     Effect.gen(function* () {
       const { join } = yield* Path.Path;
-      const baseDir = join(os.tmpdir(), "t3-cli-config-env-base");
+      const baseDir = join(os.tmpdir(), "flagcode-cli-config-env-base");
       const derivedPaths = yield* deriveServerPaths(baseDir, new URL("http://127.0.0.1:5173"));
       const resolved = yield* resolveServerConfig(
         {
@@ -55,16 +58,16 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
             ConfigProvider.layer(
               ConfigProvider.fromEnv({
                 env: {
-                  T3CODE_LOG_LEVEL: "Warn",
-                  T3CODE_MODE: "desktop",
-                  T3CODE_PORT: "4001",
-                  T3CODE_HOST: "0.0.0.0",
-                  T3CODE_HOME: baseDir,
+                  FLAGCODE_LOG_LEVEL: "Warn",
+                  FLAGCODE_MODE: "desktop",
+                  FLAGCODE_PORT: "4001",
+                  FLAGCODE_HOST: "0.0.0.0",
+                  FLAGCODE_HOME: baseDir,
                   VITE_DEV_SERVER_URL: "http://127.0.0.1:5173",
-                  T3CODE_NO_BROWSER: "true",
-                  T3CODE_AUTH_TOKEN: "env-token",
-                  T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "false",
-                  T3CODE_LOG_WS_EVENTS: "true",
+                  FLAGCODE_NO_BROWSER: "true",
+                  FLAGCODE_AUTH_TOKEN: "env-token",
+                  FLAGCODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "false",
+                  FLAGCODE_LOG_WS_EVENTS: "true",
                 },
               }),
             ),
@@ -95,7 +98,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
   it.effect("uses CLI flags when provided", () =>
     Effect.gen(function* () {
       const { join } = yield* Path.Path;
-      const baseDir = join(os.tmpdir(), "t3-cli-config-flags-base");
+      const baseDir = join(os.tmpdir(), "flagcode-cli-config-flags-base");
       const derivedPaths = yield* deriveServerPaths(baseDir, new URL("http://127.0.0.1:4173"));
       const resolved = yield* resolveServerConfig(
         {
@@ -118,16 +121,16 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
             ConfigProvider.layer(
               ConfigProvider.fromEnv({
                 env: {
-                  T3CODE_LOG_LEVEL: "Warn",
-                  T3CODE_MODE: "desktop",
-                  T3CODE_PORT: "4001",
-                  T3CODE_HOST: "0.0.0.0",
-                  T3CODE_HOME: join(os.tmpdir(), "ignored-base"),
+                  FLAGCODE_LOG_LEVEL: "Warn",
+                  FLAGCODE_MODE: "desktop",
+                  FLAGCODE_PORT: "4001",
+                  FLAGCODE_HOST: "0.0.0.0",
+                  FLAGCODE_HOME: join(os.tmpdir(), "ignored-base"),
                   VITE_DEV_SERVER_URL: "http://127.0.0.1:5173",
-                  T3CODE_NO_BROWSER: "false",
-                  T3CODE_AUTH_TOKEN: "ignored-token",
-                  T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "false",
-                  T3CODE_LOG_WS_EVENTS: "false",
+                  FLAGCODE_NO_BROWSER: "false",
+                  FLAGCODE_AUTH_TOKEN: "ignored-token",
+                  FLAGCODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "false",
+                  FLAGCODE_LOG_WS_EVENTS: "false",
                 },
               }),
             ),
@@ -163,7 +166,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
         mode: "desktop",
         port: 4888,
         host: "127.0.0.2",
-        t3Home: baseDir,
+        flagcodeHome: baseDir,
         devUrl: "http://127.0.0.1:5173",
         noBrowser: true,
         authToken: "bootstrap-token",
@@ -195,7 +198,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
             ConfigProvider.layer(
               ConfigProvider.fromEnv({
                 env: {
-                  T3CODE_BOOTSTRAP_FD: String(fd),
+                  FLAGCODE_BOOTSTRAP_FD: String(fd),
                 },
               }),
             ),
@@ -230,7 +233,7 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
     Effect.gen(function* () {
       const fs = yield* FileSystem.FileSystem;
       const path = yield* Path.Path;
-      const baseDir = yield* fs.makeTempDirectoryScoped({ prefix: "t3-cli-config-dirs-" });
+      const baseDir = yield* fs.makeTempDirectoryScoped({ prefix: "flagcode-cli-config-dirs-" });
       const customCwd = path.join(baseDir, "nested", "project");
 
       const resolved = yield* resolveServerConfig(
@@ -277,12 +280,12 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
   it.effect("applies flag then env precedence over bootstrap envelope values", () =>
     Effect.gen(function* () {
       const { join } = yield* Path.Path;
-      const baseDir = join(os.tmpdir(), "t3-cli-config-env-wins");
+      const baseDir = join(os.tmpdir(), "flagcode-cli-config-env-wins");
       const fd = yield* openBootstrapFd({
         mode: "desktop",
         port: 4888,
         host: "127.0.0.2",
-        t3Home: "/tmp/t3-bootstrap-home",
+        flagcodeHome: "/tmp/t3-bootstrap-home",
         devUrl: "http://127.0.0.1:5173",
         noBrowser: false,
         authToken: "bootstrap-token",
@@ -312,12 +315,12 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
             ConfigProvider.layer(
               ConfigProvider.fromEnv({
                 env: {
-                  T3CODE_MODE: "web",
-                  T3CODE_BOOTSTRAP_FD: String(fd),
-                  T3CODE_HOME: baseDir,
-                  T3CODE_NO_BROWSER: "true",
-                  T3CODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "true",
-                  T3CODE_LOG_WS_EVENTS: "true",
+                  FLAGCODE_MODE: "web",
+                  FLAGCODE_BOOTSTRAP_FD: String(fd),
+                  FLAGCODE_HOME: baseDir,
+                  FLAGCODE_NO_BROWSER: "true",
+                  FLAGCODE_AUTO_BOOTSTRAP_PROJECT_FROM_CWD: "true",
+                  FLAGCODE_LOG_WS_EVENTS: "true",
                 },
               }),
             ),
@@ -349,7 +352,9 @@ it.layer(NodeServices.layer)("cli config resolution", (it) => {
     Effect.gen(function* () {
       const fs = yield* FileSystem.FileSystem;
       const path = yield* Path.Path;
-      const baseDir = yield* fs.makeTempDirectoryScoped({ prefix: "t3-cli-config-settings-" });
+      const baseDir = yield* fs.makeTempDirectoryScoped({
+        prefix: "flagcode-cli-config-settings-",
+      });
       const derivedPaths = yield* deriveServerPaths(baseDir, undefined);
       yield* fs.makeDirectory(path.dirname(derivedPaths.settingsPath), { recursive: true });
       yield* fs.writeFileString(

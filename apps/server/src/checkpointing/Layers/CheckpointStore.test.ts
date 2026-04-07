@@ -15,7 +15,7 @@ import { ServerConfig } from "../../config.ts";
 import { ThreadId } from "@flagcode/contracts";
 
 const ServerConfigLayer = ServerConfig.layerTest(process.cwd(), {
-  prefix: "t3-checkpoint-store-test-",
+  prefix: "flagcode-checkpoint-store-test-",
 });
 const GitCoreTestLayer = GitCoreLive.pipe(
   Layer.provide(ServerConfigLayer),

@@ -51,7 +51,7 @@ export interface ServerRuntimeStartupShape {
 export class ServerRuntimeStartup extends ServiceMap.Service<
   ServerRuntimeStartup,
   ServerRuntimeStartupShape
->()("t3/serverRuntimeStartup") {}
+>()("flagcode/serverRuntimeStartup") {}
 
 interface QueuedCommand {
   readonly run: Effect.Effect<void, never>;

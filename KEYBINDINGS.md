@@ -2,7 +2,7 @@
 
 FlagCode reads keybindings from:
 
-- `~/.t3/keybindings.json`
+- `~/.flagcode/keybindings.json`
 
 The file must be a JSON array of rules:
 

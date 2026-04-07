@@ -194,7 +194,7 @@ describe("serverState", () => {
       type: "welcome",
       payload: {
         cwd: "/tmp/workspace",
-        projectName: "t3-code",
+        projectName: "flagcode",
         bootstrapProjectId: ProjectId.makeUnsafe("project-1"),
         bootstrapThreadId: ThreadId.makeUnsafe("thread-1"),
       },
@@ -202,7 +202,7 @@ describe("serverState", () => {
 
     expect(listener).toHaveBeenCalledWith({
       cwd: "/tmp/workspace",
-      projectName: "t3-code",
+      projectName: "flagcode",
       bootstrapProjectId: ProjectId.makeUnsafe("project-1"),
       bootstrapThreadId: ThreadId.makeUnsafe("thread-1"),
     });
@@ -211,7 +211,7 @@ describe("serverState", () => {
     const unsubscribeLate = onWelcome(lateListener);
     expect(lateListener).toHaveBeenCalledWith({
       cwd: "/tmp/workspace",
-      projectName: "t3-code",
+      projectName: "flagcode",
       bootstrapProjectId: ProjectId.makeUnsafe("project-1"),
       bootstrapThreadId: ThreadId.makeUnsafe("thread-1"),
     });

@@ -14,7 +14,9 @@ import { ServerConfig } from "../../config.ts";
 
 // ── Helpers ──
 
-const ServerConfigLayer = ServerConfig.layerTest(process.cwd(), { prefix: "t3-git-core-test-" });
+const ServerConfigLayer = ServerConfig.layerTest(process.cwd(), {
+  prefix: "flagcode-git-core-test-",
+});
 const GitCoreTestLayer = GitCoreLive.pipe(
   Layer.provide(ServerConfigLayer),
   Layer.provide(NodeServices.layer),
@@ -1564,12 +1566,12 @@ it.layer(TestLayer)("git integration", (it) => {
           yield* initRepoWithCommit(tmp);
           const core = yield* GitCore;
 
-          yield* git(tmp, ["remote", "add", "origin", "git@github.com:pingdotgg/flagcode.git"]);
+          yield* git(tmp, ["remote", "add", "origin", "git@github.com:f1amee-dev/flagcode.git"]);
 
           const remoteName = yield* core.ensureRemote({
             cwd: tmp,
             preferredName: "origin",
-            url: "git@github.com:pingdotgg/flagcode.git/",
+            url: "git@github.com:f1amee-dev/flagcode.git/",
           });
 
           expect(remoteName).toBe("origin");

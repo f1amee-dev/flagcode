@@ -14,7 +14,7 @@ FlagCode is a fork of [T3 Code](https://github.com/pingdotgg/t3code), a minimal 
 ### Run without installing
 
 ```bash
-npx t3
+npx flagcode
 ```
 
 ### Desktop app
