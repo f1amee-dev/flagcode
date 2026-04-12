@@ -663,6 +663,7 @@ function makeThread(overrides: Partial<Thread> = {}): Thread {
     ctfCategory: null,
     turnDiffSummaries: [],
     activities: [],
+    dockerSandbox: null,
     ...overrides,
   };
 }

@@ -61,6 +61,8 @@ function makeSidebarThreadSummary(
     branch: null,
     worktreePath: null,
     latestUserMessageAt: null,
+    ctfCategory: null,
+    dockerSandbox: null,
     hasPendingApprovals: false,
     hasPendingUserInput: false,
     hasActionableProposedPlan: false,

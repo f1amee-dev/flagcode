@@ -139,6 +139,7 @@ function createMinimalSnapshot(): OrchestrationReadModel {
         ctfCategory: null,
         swarmId: null,
         swarmLabel: null,
+        dockerSandbox: null,
         createdAt: NOW_ISO,
         updatedAt: NOW_ISO,
         archivedAt: null,

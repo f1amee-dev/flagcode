@@ -280,6 +280,7 @@ projectionSnapshotLayer("ProjectionSnapshotQuery", (it) => {
           ctfCategory: null,
           swarmId: null,
           swarmLabel: null,
+          dockerSandbox: null,
           latestTurn: {
             turnId: asTurnId("turn-1"),
             state: "completed",

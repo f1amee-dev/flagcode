@@ -40,6 +40,8 @@ import {
 import { resolveAttachmentPath } from "../../attachmentStore.ts";
 import { ServerConfig } from "../../config.ts";
 import { ServerSettingsService } from "../../serverSettings.ts";
+import { createSandboxHandleMap, type SandboxHandle } from "../../sandbox/SandboxHandles.ts";
+import { SandboxService, type SandboxHandle as ServiceSandboxHandle } from "../../sandbox/SandboxService.ts";
 import { type EventNdjsonLogger, makeEventNdjsonLogger } from "./EventNdjsonLogger.ts";
 
 const PROVIDER = "codex" as const;
@@ -1373,6 +1375,8 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
     }),
   );
   const serverSettingsService = yield* ServerSettingsService;
+  const sandboxService = yield* SandboxService;
+  const sandboxHandles = createSandboxHandleMap();
 
   const startSession: CodexAdapterShape["startSession"] = Effect.fn("startSession")(
     function* (input) {
@@ -1398,6 +1402,37 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
       );
       const binaryPath = codexSettings.binaryPath;
       const homePath = codexSettings.homePath;
+
+      let serviceHandle: ServiceSandboxHandle | undefined;
+      if (input.dockerSandbox === true) {
+        if (!input.cwd) {
+          return yield* new ProviderAdapterProcessError({
+            provider: PROVIDER,
+            threadId: input.threadId,
+            detail:
+              "Docker sandbox requires an explicit workspace path (cwd). Refusing to fall back to the server working directory.",
+          });
+        }
+        serviceHandle = yield* sandboxService.startContainer(input.cwd).pipe(
+          Effect.mapError(
+            (error) =>
+              new ProviderAdapterProcessError({
+                provider: PROVIDER,
+                threadId: input.threadId,
+                detail: `Failed to start Docker sandbox: ${error.message}`,
+                cause: error,
+              }),
+          ),
+        );
+        sandboxHandles.register({
+          threadId: input.threadId,
+          containerId: serviceHandle.containerId,
+          stop: sandboxService.stopContainer(serviceHandle).pipe(
+            Effect.catch(() => Effect.void),
+          ),
+        });
+      }
+
       const managerInput: CodexAppServerStartSessionInput = {
         threadId: input.threadId,
         provider: "codex",
@@ -1412,6 +1447,8 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
         ...(input.modelSelection?.provider === "codex" && input.modelSelection.options?.fastMode
           ? { serviceTier: "fast" }
           : {}),
+        ...(serviceHandle ? { sandboxContainerId: serviceHandle.containerId } : {}),
+        ...(serviceHandle ? { sandboxBridgeHost: serviceHandle.bridgeHost } : {}),
       };
 
       return yield* Effect.tryPromise({
@@ -1553,8 +1590,9 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
     });
 
   const stopSession: CodexAdapterShape["stopSession"] = (threadId) =>
-    Effect.sync(() => {
+    Effect.gen(function* () {
       manager.stopSession(threadId);
+      yield* sandboxHandles.stopOne(threadId);
     });
 
   const listSessions: CodexAdapterShape["listSessions"] = () =>
@@ -1564,8 +1602,10 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
     Effect.sync(() => manager.hasSession(threadId));
 
   const stopAll: CodexAdapterShape["stopAll"] = () =>
-    Effect.sync(() => {
+    Effect.gen(function* () {
       manager.stopAll();
+      // Drain any orphaned sandbox handles that outlived their session
+      yield* sandboxHandles.stopAll();
     });
 
   const runtimeEventQueue = yield* Queue.unbounded<ProviderRuntimeEvent>();
@@ -1609,6 +1649,9 @@ const makeCodexAdapter = Effect.fn("makeCodexAdapter")(function* (
   });
 
   yield* Effect.acquireRelease(registerListener(), unregisterListener);
+
+  // Ensure all sandbox containers are stopped when the adapter scope closes
+  yield* Effect.addFinalizer(() => sandboxHandles.stopAll());
 
   return {
     provider: PROVIDER,

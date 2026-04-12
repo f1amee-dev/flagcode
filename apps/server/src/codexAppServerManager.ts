@@ -17,7 +17,10 @@ import {
   type ProviderTurnStartResult,
   RuntimeMode,
   ProviderInteractionMode,
+  type CtfCategory,
 } from "@flagcode/contracts";
+import { resolveCtfSystemPrompt } from "@flagcode/shared/ctf";
+import { buildSandboxInstructions } from "@flagcode/shared/sandbox";
 import { normalizeModelSlug } from "@flagcode/shared/model";
 import { Effect, Context } from "effect";
 
@@ -81,6 +84,8 @@ interface CodexSessionContext {
   collabReceiverTurns: Map<string, TurnId>;
   nextRequestId: number;
   stopping: boolean;
+  sandboxContainerId?: string;
+  sandboxBridgeHost?: string;
 }
 
 interface JsonRpcError {
@@ -113,6 +118,8 @@ export interface CodexAppServerSendTurnInput {
   readonly serviceTier?: string | null;
   readonly effort?: string;
   readonly interactionMode?: ProviderInteractionMode;
+  readonly ctfCategory?: CtfCategory;
+  readonly ctfCustomPrompts?: Partial<Record<CtfCategory, string | undefined>>;
 }
 
 export interface CodexAppServerStartSessionInput {
@@ -125,6 +132,8 @@ export interface CodexAppServerStartSessionInput {
   readonly binaryPath: string;
   readonly homePath?: string;
   readonly runtimeMode: RuntimeMode;
+  readonly sandboxContainerId?: string;
+  readonly sandboxBridgeHost?: string;
 }
 
 export interface CodexThreadTurnSnapshot {
@@ -341,6 +350,10 @@ function buildCodexCollaborationMode(input: {
   readonly interactionMode?: "default" | "plan";
   readonly model?: string;
   readonly effort?: string;
+  readonly ctfCategory?: CtfCategory;
+  readonly ctfCustomPrompts?: Partial<Record<CtfCategory, string | undefined>>;
+  readonly sandboxContainerId?: string;
+  readonly sandboxBridgeHost?: string;
 }):
   | {
       mode: "default" | "plan";
@@ -355,15 +368,26 @@ function buildCodexCollaborationMode(input: {
     return undefined;
   }
   const model = normalizeCodexModelSlug(input.model) ?? "gpt-5.3-codex";
+  const baseInstructions =
+    input.interactionMode === "plan"
+      ? CODEX_PLAN_MODE_DEVELOPER_INSTRUCTIONS
+      : CODEX_DEFAULT_MODE_DEVELOPER_INSTRUCTIONS;
+  const ctfPrompt = input.ctfCategory
+    ? resolveCtfSystemPrompt(input.ctfCategory, input.ctfCustomPrompts)
+    : undefined;
+  const sandboxPrompt =
+    input.sandboxContainerId && input.sandboxBridgeHost
+      ? buildSandboxInstructions(input.sandboxContainerId, input.sandboxBridgeHost)
+      : undefined;
+  const developerInstructions = [sandboxPrompt, ctfPrompt, baseInstructions]
+    .filter(Boolean)
+    .join("\n\n");
   return {
     mode: input.interactionMode,
     settings: {
       model,
       reasoning_effort: input.effort ?? "medium",
-      developer_instructions:
-        input.interactionMode === "plan"
-          ? CODEX_PLAN_MODE_DEVELOPER_INSTRUCTIONS
-          : CODEX_DEFAULT_MODE_DEVELOPER_INSTRUCTIONS,
+      developer_instructions: developerInstructions,
     },
   };
 }
@@ -496,6 +520,8 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
         collabReceiverTurns: new Map(),
         nextRequestId: 1,
         stopping: false,
+        ...(input.sandboxContainerId ? { sandboxContainerId: input.sandboxContainerId } : {}),
+        ...(input.sandboxBridgeHost ? { sandboxBridgeHost: input.sandboxBridgeHost } : {}),
       };
 
       this.sessions.set(threadId, context);
@@ -724,6 +750,14 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
       ...(input.interactionMode !== undefined ? { interactionMode: input.interactionMode } : {}),
       ...(normalizedModel !== undefined ? { model: normalizedModel } : {}),
       ...(input.effort !== undefined ? { effort: input.effort } : {}),
+      ...(input.ctfCategory !== undefined ? { ctfCategory: input.ctfCategory } : {}),
+      ...(input.ctfCustomPrompts !== undefined ? { ctfCustomPrompts: input.ctfCustomPrompts } : {}),
+      ...(context.sandboxContainerId !== undefined
+        ? { sandboxContainerId: context.sandboxContainerId }
+        : {}),
+      ...(context.sandboxBridgeHost !== undefined
+        ? { sandboxBridgeHost: context.sandboxBridgeHost }
+        : {}),
     });
     if (collaborationMode) {
       if (!turnStartParams.model) {

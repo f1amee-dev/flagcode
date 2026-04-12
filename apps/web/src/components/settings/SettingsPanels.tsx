@@ -8,8 +8,8 @@ import {
   RefreshCwIcon,
   XIcon,
 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   PROVIDER_DISPLAY_NAMES,
   type ScopedThreadRef,
@@ -17,6 +17,7 @@ import {
   type ServerProvider,
   type ServerProviderModel,
 } from "@flagcode/contracts";
+import type { SandboxInstallProgressEvent } from "@flagcode/shared/rpc";
 import { scopeThreadRef } from "@flagcode/client-runtime";
 import { DEFAULT_UNIFIED_SETTINGS } from "@flagcode/contracts/settings";
 import { normalizeModelSlug } from "@flagcode/shared/model";
@@ -76,6 +77,7 @@ import {
   useServerObservability,
   useServerProviders,
 } from "../../rpc/serverState";
+import { getPrimaryEnvironmentConnection } from "../../environments/runtime";
 
 const THEME_OPTIONS = [
   {
@@ -226,6 +228,143 @@ function AboutVersionTitle() {
       <span>Version</span>
       <code className="text-[11px] font-medium text-muted-foreground">{APP_VERSION}</code>
     </span>
+  );
+}
+
+function SandboxSection() {
+  const statusQuery = useQuery({
+    queryKey: ["sandbox", "status"],
+    queryFn: () => getPrimaryEnvironmentConnection().client.sandbox.getStatus(),
+    staleTime: 10_000,
+    refetchOnWindowFocus: false,
+  });
+  const [installProgress, setInstallProgress] = useState<string[]>([]);
+  const [isInstalling, setIsInstalling] = useState(false);
+  const [installError, setInstallError] = useState<string | null>(null);
+
+  const status = statusQuery.data;
+
+  const statusText = (() => {
+    if (statusQuery.isLoading) return "Checking...";
+    if (!status?.dockerAvailable) return "Docker not found";
+    if (!status.imageInstalled) return "Image not installed";
+    return `Ready (${status.imageTag ?? "flagcode/ctf-sandbox:latest"})`;
+  })();
+
+  const statusDotClass = (() => {
+    if (!status?.dockerAvailable) return "bg-amber-400";
+    if (!status.imageInstalled) return "bg-amber-400";
+    return "bg-success";
+  })();
+
+  const runProgressStream = useCallback(
+    async (streamFn: (cb: (event: SandboxInstallProgressEvent) => void) => Promise<void>) => {
+      setIsInstalling(true);
+      setInstallError(null);
+      setInstallProgress([]);
+      try {
+        await streamFn((event) => {
+          if (event.stage === "pulling") {
+            if (event.layer === "error") {
+              setInstallError(event.progress);
+              return;
+            }
+            setInstallProgress((prev) => {
+              const label =
+                event.layer === "build" || event.layer === "docker"
+                  ? event.progress
+                  : `[${event.layer}] ${event.progress}`;
+              // Overwrite the previous line for the same layer (in-place progress)
+              if (
+                event.layer !== "build" &&
+                event.layer !== "docker" &&
+                prev[prev.length - 1]?.startsWith(`[${event.layer}]`)
+              ) {
+                return [...prev.slice(0, -1), label];
+              }
+              return [...prev, label];
+            });
+          } else if (event.stage === "complete") {
+            setInstallProgress((prev) => [
+              ...prev,
+              `✓ Done${event.imageId ? ` (${event.imageId.slice(0, 12)})` : ""}`,
+            ]);
+          }
+        });
+        void statusQuery.refetch();
+      } catch (error) {
+        setInstallError(
+          (prev) => prev ?? (error instanceof Error ? error.message : "Operation failed."),
+        );
+      } finally {
+        setIsInstalling(false);
+      }
+    },
+    [statusQuery],
+  );
+
+  const handlePull = useCallback(
+    () => runProgressStream((cb) => getPrimaryEnvironmentConnection().client.sandbox.installImage(cb)),
+    [runProgressStream],
+  );
+
+  const handleBuild = useCallback(
+    () => runProgressStream((cb) => getPrimaryEnvironmentConnection().client.sandbox.buildImage(cb)),
+    [runProgressStream],
+  );
+
+  return (
+    <SettingsSection title="CTF Sandbox">
+      <SettingsRow
+        title="Docker Sandbox"
+        description="Pre-configured Docker container with CTF tools (pwntools, radare2, gdb, checksec, and more)."
+        status={
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-block size-2 rounded-full ${statusDotClass}`} />
+            <span>{statusText}</span>
+          </div>
+        }
+        control={
+          status?.dockerAvailable && !status.imageInstalled ? (
+            <div className="flex gap-1.5">
+              <Button
+                size="xs"
+                variant="outline"
+                disabled={isInstalling}
+                onClick={() => void handleBuild()}
+              >
+                {isInstalling ? (
+                  <>
+                    <LoaderIcon className="mr-1 size-3 animate-spin" />
+                    Building...
+                  </>
+                ) : (
+                  "Build locally"
+                )}
+              </Button>
+              <Button
+                size="xs"
+                variant="ghost"
+                disabled={isInstalling}
+                onClick={() => void handlePull()}
+                title="Pull from flagcode/ctf-sandbox registry"
+              >
+                Pull
+              </Button>
+            </div>
+          ) : null
+        }
+      >
+        {installProgress.length > 0 ? (
+          <div className="mt-2 max-h-32 overflow-y-auto rounded bg-muted/60 px-3 py-2 font-mono text-[10px] text-muted-foreground">
+            {installProgress.map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
+          </div>
+        ) : null}
+        {installError ? <p className="mt-2 text-xs text-destructive">{installError}</p> : null}
+      </SettingsRow>
+    </SettingsSection>
   );
 }
 
@@ -1316,6 +1455,8 @@ export function GeneralSettingsPanel() {
           );
         })}
       </SettingsSection>
+
+      <SandboxSection />
 
       <SettingsSection title="Advanced">
         <SettingsRow

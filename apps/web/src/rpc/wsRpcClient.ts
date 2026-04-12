@@ -8,6 +8,7 @@ import {
   ORCHESTRATION_WS_METHODS,
   type ServerSettingsPatch,
 } from "@flagcode/contracts";
+import type { SandboxInstallProgressEvent } from "@flagcode/shared/rpc";
 import { WS_METHODS } from "@flagcode/shared/rpc";
 import { applyGitStatusStreamEvent } from "@flagcode/shared/git";
 import { Effect, Stream } from "effect";
@@ -110,6 +111,15 @@ export interface WsRpcClient {
   };
   readonly writeup: {
     readonly generate: RpcUnaryMethod<typeof WS_METHODS.writeupGenerate>;
+  };
+  readonly sandbox: {
+    readonly getStatus: RpcUnaryNoArgMethod<typeof WS_METHODS.sandboxGetStatus>;
+    readonly installImage: (
+      onProgress: (event: SandboxInstallProgressEvent) => void,
+    ) => Promise<void>;
+    readonly buildImage: (
+      onProgress: (event: SandboxInstallProgressEvent) => void,
+    ) => Promise<void>;
   };
 }
 
@@ -243,6 +253,13 @@ export function createWsRpcClient(transport: WsTransport): WsRpcClient {
     },
     writeup: {
       generate: (input) => transport.request((client) => client[WS_METHODS.writeupGenerate](input)),
+    },
+    sandbox: {
+      getStatus: () => transport.request((client) => client[WS_METHODS.sandboxGetStatus]({})),
+      installImage: (onProgress) =>
+        transport.requestStream((client) => client[WS_METHODS.sandboxInstallImage]({}), onProgress),
+      buildImage: (onProgress) =>
+        transport.requestStream((client) => client[WS_METHODS.sandboxBuildImage]({}), onProgress),
     },
   };
 }

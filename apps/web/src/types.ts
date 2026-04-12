@@ -119,6 +119,7 @@ export interface Thread {
   branch: string | null;
   worktreePath: string | null;
   ctfCategory: CtfCategory | null;
+  dockerSandbox: boolean | null;
   turnDiffSummaries: TurnDiffSummary[];
   activities: OrchestrationThreadActivity[];
 }
@@ -139,6 +140,7 @@ export interface ThreadShell {
   branch: string | null;
   worktreePath: string | null;
   ctfCategory: CtfCategory | null;
+  dockerSandbox: boolean | null;
 }
 
 export interface ThreadTurnState {
@@ -159,6 +161,8 @@ export interface SidebarThreadSummary {
   latestTurn: OrchestrationLatestTurn | null;
   branch: string | null;
   worktreePath: string | null;
+  ctfCategory: CtfCategory | null;
+  dockerSandbox: boolean | null;
   latestUserMessageAt: string | null;
   hasPendingApprovals: boolean;
   hasPendingUserInput: boolean;

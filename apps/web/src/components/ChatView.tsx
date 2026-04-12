@@ -621,6 +621,13 @@ export default function ChatView(props: ChatViewProps) {
   const composerInteractionMode = useComposerDraftStore(
     (store) => store.getComposerDraft(composerDraftTarget)?.interactionMode ?? null,
   );
+  const composerCtfCategory = useComposerDraftStore(
+    (store) => store.getComposerDraft(composerDraftTarget)?.ctfCategory ?? null,
+  );
+  const composerDockerSandbox = useComposerDraftStore((store) => {
+    const val = store.getComposerDraft(composerDraftTarget)?.dockerSandbox;
+    return typeof val === "boolean" ? val : null;
+  });
   const composerActiveProvider = useComposerDraftStore(
     (store) => store.getComposerDraft(composerDraftTarget)?.activeProvider ?? null,
   );
@@ -794,6 +801,12 @@ export default function ChatView(props: ChatViewProps) {
   const runtimeMode = composerRuntimeMode ?? activeThread?.runtimeMode ?? DEFAULT_RUNTIME_MODE;
   const interactionMode =
     composerInteractionMode ?? activeThread?.interactionMode ?? DEFAULT_INTERACTION_MODE;
+  const ctfCategory =
+    composerCtfCategory ?? activeThread?.ctfCategory ?? draftThread?.ctfCategory ?? null;
+  const dockerSandbox =
+    typeof composerDockerSandbox === "boolean"
+      ? composerDockerSandbox
+      : (activeThread?.dockerSandbox ?? draftThread?.dockerSandbox ?? null);
   const isLocalDraftThread = !isServerThread && localDraftThread !== undefined;
   const canCheckoutPullRequestIntoThread = isLocalDraftThread;
   const diffOpen = rawSearch.diff === "1";
@@ -1922,6 +1935,16 @@ export default function ChatView(props: ChatViewProps) {
     [activeThread, isServerThread, isLocalDraftThread, composerDraftTarget, setDraftThreadContext],
   );
 
+  const handleDockerSandboxChange = useCallback(
+    (enabled: boolean) => {
+      if (!activeThread) return;
+      if (isLocalDraftThread) {
+        setDraftThreadContext(composerDraftTarget, { dockerSandbox: enabled });
+      }
+    },
+    [activeThread, isLocalDraftThread, composerDraftTarget, setDraftThreadContext],
+  );
+
   const togglePlanSidebar = useCallback(() => {
     setPlanSidebarOpen((open) => {
       if (open) {
@@ -2691,9 +2714,8 @@ export default function ChatView(props: ChatViewProps) {
                       interactionMode,
                       branch: activeThread.branch,
                       worktreePath: activeThread.worktreePath,
-                      ...(activeThread.ctfCategory
-                        ? { ctfCategory: activeThread.ctfCategory }
-                        : {}),
+                      ...(ctfCategory ? { ctfCategory } : {}),
+                      ...(typeof dockerSandbox === "boolean" ? { dockerSandbox } : {}),
                       createdAt: activeThread.createdAt,
                     },
                   }
@@ -3142,6 +3164,7 @@ export default function ChatView(props: ChatViewProps) {
         interactionMode: "default",
         branch: activeThread.branch,
         worktreePath: activeThread.worktreePath,
+        ...(typeof activeThread.dockerSandbox === "boolean" ? { dockerSandbox: activeThread.dockerSandbox } : {}),
         createdAt,
       })
       .then(() => {
@@ -3483,6 +3506,7 @@ export default function ChatView(props: ChatViewProps) {
               handleRuntimeModeChange={handleRuntimeModeChange}
               handleInteractionModeChange={handleInteractionModeChange}
               onCtfCategoryChange={handleCtfCategoryChange}
+              onDockerSandboxChange={handleDockerSandboxChange}
               togglePlanSidebar={togglePlanSidebar}
               focusComposer={focusComposer}
               scheduleComposerFocus={scheduleComposerFocus}

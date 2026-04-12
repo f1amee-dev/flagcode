@@ -75,6 +75,7 @@ import {
   orchestrationDispatchRouteLayer,
   orchestrationSnapshotRouteLayer,
 } from "./orchestration/http";
+import { SandboxLayerLive } from "./sandbox/SandboxLayer";
 
 const PtyAdapterLive = Layer.unwrap(
   Effect.gen(function* () {
@@ -224,6 +225,7 @@ const RuntimeDependenciesLive = ReactorLayerLive.pipe(
   Layer.provideMerge(AnalyticsServiceLayerLive),
   Layer.provideMerge(OpenLive),
   Layer.provideMerge(ServerLifecycleEventsLive),
+  Layer.provideMerge(SandboxLayerLive),
 );
 
 const RuntimeServicesLive = ServerRuntimeStartupLive.pipe(

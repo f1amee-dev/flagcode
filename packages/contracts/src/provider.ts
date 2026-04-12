@@ -57,6 +57,7 @@ export const ProviderSessionStartInput = Schema.Struct({
   sandboxMode: Schema.optional(ProviderSandboxMode),
   runtimeMode: RuntimeMode,
   ctfCategory: Schema.optional(CtfCategory),
+  dockerSandbox: Schema.optional(Schema.Boolean),
 });
 export type ProviderSessionStartInput = typeof ProviderSessionStartInput.Type;
 

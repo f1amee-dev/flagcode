@@ -38,6 +38,7 @@ import Migration0022 from "./Migrations/022_AuthSessionLastConnectedAt.ts";
 import Migration0023 from "./Migrations/023_SwarmFindings.ts";
 import Migration0024 from "./Migrations/024_SwarmFindingsUniqueSequence.ts";
 import Migration0025 from "./Migrations/025_ProjectionThreadsCtfCategory.ts";
+import Migration0026 from "./Migrations/026_ProjectionThreadsDockerSandbox.ts";
 
 /**
  * Migration loader with all migrations defined inline.
@@ -75,6 +76,7 @@ export const migrationEntries = [
   [23, "SwarmFindings", Migration0023],
   [24, "SwarmFindingsUniqueSequence", Migration0024],
   [25, "ProjectionThreadsCtfCategory", Migration0025],
+  [26, "ProjectionThreadsDockerSandbox", Migration0026],
 ] as const;
 
 export const makeMigrationLoader = (throughId?: number) =>

@@ -101,6 +101,7 @@ import type { SessionPhase, Thread } from "../../types";
 import type { PendingUserInputDraftAnswer } from "../../pendingUserInput";
 import type { PendingApproval, PendingUserInput } from "../../session-logic";
 import { CtfCategoryPicker } from "./CtfCategoryPicker";
+import { SandboxToggle } from "./SandboxToggle";
 import { deriveLatestContextWindowSnapshot } from "../../lib/contextWindow";
 import { formatProviderSkillDisplayName } from "../../providerSkillPresentation";
 import { searchProviderSkills } from "../../providerSkillSearch";
@@ -432,6 +433,7 @@ export interface ChatComposerProps {
 
   onProviderModelSelect: (provider: ProviderKind, model: string) => void;
   onCtfCategoryChange: (category: CtfCategory | null) => void;
+  onDockerSandboxChange: (enabled: boolean) => void;
   toggleInteractionMode: () => void;
   handleRuntimeModeChange: (mode: RuntimeMode) => void;
   handleInteractionModeChange: (mode: ProviderInteractionMode) => void;
@@ -1930,6 +1932,15 @@ export const ChatComposer = memo(
                       (props.activeThread?.messages?.length ?? 0) > 0
                     }
                     compact={isComposerFooterCompact}
+                  />
+
+                  {/* Docker sandbox toggle — locked after the first message is sent */}
+                  <SandboxToggle
+                    enabled={props.activeThread?.dockerSandbox === true}
+                    onChange={props.onDockerSandboxChange}
+                    disabled={
+                      (props.activeThread?.messages?.length ?? 0) > 0
+                    }
                   />
 
                   {isComposerFooterCompact ? (

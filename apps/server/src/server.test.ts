@@ -101,6 +101,7 @@ import { ServerSecretStoreLive } from "./auth/Layers/ServerSecretStore.ts";
 import { ServerAuthLive } from "./auth/Layers/ServerAuth.ts";
 import { TextGeneration, type TextGenerationShape } from "./git/Services/TextGeneration.ts";
 import { SwarmMessageBus } from "./swarm/Services/SwarmMessageBus.ts";
+import { SandboxLayerNoop } from "./sandbox/SandboxLayer.ts";
 
 const defaultProjectId = ProjectId.make("project-default");
 const defaultThreadId = ThreadId.make("thread-default");
@@ -151,6 +152,7 @@ const makeDefaultOrchestrationReadModel = () => {
         ctfCategory: null,
         swarmId: null,
         swarmLabel: null,
+        dockerSandbox: null,
         createdAt: now,
         updatedAt: now,
         archivedAt: null,
@@ -497,6 +499,7 @@ const buildAppUnderTest = (options?: {
         }),
       ),
       Layer.provide(workspaceAndProjectServicesLayer),
+      Layer.provide(SandboxLayerNoop),
       Layer.provideMerge(FetchHttpClient.layer),
       Layer.provide(layerConfig),
     );
@@ -2743,6 +2746,7 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
             ctfCategory: null,
             swarmId: null,
             swarmLabel: null,
+            dockerSandbox: null,
             createdAt: now,
             updatedAt: now,
             archivedAt: null,
