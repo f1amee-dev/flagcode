@@ -10,8 +10,8 @@ import {
   type ServerConfig,
   type ServerLifecycleWelcomePayload,
   type ThreadId,
-  WS_METHODS,
 } from "@flagcode/contracts";
+import { WS_METHODS } from "@flagcode/shared/rpc";
 import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
 import { ws, http, HttpResponse } from "msw";
 import { setupWorker } from "msw/browser";

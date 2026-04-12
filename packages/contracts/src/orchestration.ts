@@ -1276,10 +1276,3 @@ export const SwarmGetFindingsInput = Schema.Struct({
 });
 export type SwarmGetFindingsInput = typeof SwarmGetFindingsInput.Type;
 
-export class SwarmGetFindingsError extends Schema.TaggedErrorClass<SwarmGetFindingsError>()(
-  "SwarmGetFindingsError",
-  {
-    message: TrimmedNonEmptyString,
-    cause: Schema.optional(Schema.Defect),
-  },
-) {}

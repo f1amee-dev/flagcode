@@ -1,4 +1,5 @@
-import { DEFAULT_SERVER_SETTINGS, WS_METHODS } from "@flagcode/contracts";
+import { DEFAULT_SERVER_SETTINGS } from "@flagcode/contracts";
+import { WS_METHODS } from "@flagcode/shared/rpc";
 import { Stream } from "effect";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

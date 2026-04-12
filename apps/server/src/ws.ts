@@ -16,14 +16,12 @@ import {
   ProjectSearchEntriesError,
   ProjectWriteFileError,
   OrchestrationReplayEventsError,
-  SwarmGetFindingsError,
   TextGenerationError,
   ThreadId,
   type TerminalEvent,
-  WS_METHODS,
-  WsRpcGroup,
   type SwarmId,
 } from "@flagcode/contracts";
+import { SwarmGetFindingsError, WS_METHODS, WsRpcGroup } from "@flagcode/shared/rpc";
 import { clamp } from "effect/Number";
 import { HttpRouter, HttpServerRequest } from "effect/unstable/http";
 import { RpcSerialization, RpcServer } from "effect/unstable/rpc";

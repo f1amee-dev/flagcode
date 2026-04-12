@@ -13,10 +13,10 @@ import {
   type ServerLifecycleWelcomePayload,
   type ThreadId,
   type TurnId,
-  WS_METHODS,
   OrchestrationSessionStatus,
   DEFAULT_SERVER_SETTINGS,
 } from "@flagcode/contracts";
+import { WS_METHODS } from "@flagcode/shared/rpc";
 import {
   scopedProjectKey,
   scopedThreadKey,
