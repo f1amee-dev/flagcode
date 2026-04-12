@@ -1916,6 +1916,18 @@ const SidebarSwarmSection = memo(function SidebarSwarmSection({
               <div
                 key={swarm.id}
                 className="flex items-center gap-2 rounded-md px-2 py-1 text-sm hover:bg-secondary cursor-pointer"
+                onClick={() => {
+                  if (swarm.status === "solved" && swarm.flagValue) {
+                    // Strip the outer wrapper (e.g. flag{...}, CTF2026[...]) to show only the inner content
+                    const inner = swarm.flagValue.match(/^[^{\[]+[{\[](.+)[}\]]$/s)?.[1] ?? swarm.flagValue;
+                    toastManager.add({
+                      type: "info",
+                      title: "Captured Flag",
+                      description: inner,
+                      timeout: 0,
+                    });
+                  }
+                }}
               >
                 <ZapIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                 <span className="min-w-0 flex-1 truncate text-xs">{swarm.title}</span>
