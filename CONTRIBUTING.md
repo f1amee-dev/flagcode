@@ -2,11 +2,7 @@
 
 ## Read This First
 
-We are not actively accepting contributions right now.
-
-You can still open an issue or PR, but please do so knowing there is a high chance we close it, defer it forever, or never look at it.
-
-If that sounds annoying, that is because it is. This project is still early and we are trying to keep scope, quality, and direction under control.
+We accept contributions! If you want to help improve this project, we would love to work with you.
 
 PRs are automatically labeled with a `vouch:*` trust status and a `size:*` diff size based on changed lines.
 
@@ -32,23 +28,7 @@ Opinionated rewrites.
 
 Anything that expands product scope without us asking for it first.
 
-If you open a 1,000+ line PR full of new features, we will probably close it quickly and remember that you ignored the clearly written instructions.
-
-## If You Still Want To Open A PR
-
-Keep it small.
-
-Explain exactly what changed.
-
-Explain exactly why the change should exist.
-
-Do not mix unrelated fixes together.
-
-If the PR makes anything resembling a UI change, include clear before/after images.
-
-If the change depends on motion, timing, transitions, or interaction details, include a short video.
-
-If we have to guess what changed, we are much less likely to review it.
+If you open a 1,000+ line PR full of new features, please be prepared for us to ask you to break it into smaller pieces.
 
 ## Issues First
 
@@ -56,10 +36,8 @@ If you are thinking about a non-trivial change, open an issue first.
 
 That still does not mean we will want the PR, but it gives you a chance to avoid wasting your time.
 
-## Be Realistic
+## What To Expect
 
-Opening a PR does not create an obligation on our side.
+We will do our best to review every PR in a timely manner. We may ask you to make changes, shrink scope, or take a different approach.
 
-We may close it. We may ignore it. We may ask you to shrink it. We may reimplement the idea ourselves later.
-
-If you are fine with that, proceed.
+Thank you for contributing!
