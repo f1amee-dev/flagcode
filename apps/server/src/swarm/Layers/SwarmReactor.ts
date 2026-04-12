@@ -2,7 +2,6 @@ import type {
   CommandId,
   FindingId,
   OrchestrationEvent,
-  SwarmId,
   ThreadId,
 } from "@flagcode/contracts";
 import { Cause, Effect, Layer, Stream } from "effect";
@@ -46,23 +45,15 @@ const make = Effect.gen(function* () {
       return readModel.swarms.find((s) => s.id === thread.swarmId);
     });
 
-  const nextFindingSequence = new Map<string, number>();
-
-  const getNextSequence = (swarmId: SwarmId): number => {
-    const current = nextFindingSequence.get(swarmId) ?? 0;
-    nextFindingSequence.set(swarmId, current + 1);
-    return current;
-  };
-
   const processDomainEvent = Effect.fn("processDomainEvent")(function* (event: SwarmIntentEvent) {
     switch (event.type) {
-      case "swarm.created":
-        return;
-
-      case "swarm.started": {
+      case "swarm.created": {
         yield* coordinator.startSwarm(event.payload.swarmId);
         return;
       }
+
+      case "swarm.started":
+        return;
 
       case "swarm.flag-found": {
         yield* coordinator.interruptSiblings(event.payload.swarmId, event.payload.threadId);
@@ -73,7 +64,6 @@ const make = Effect.gen(function* () {
           kind: "flag",
           summary: `Flag found: ${event.payload.flagValue}`,
           detail: event.payload.flagValue,
-          sequence: getNextSequence(event.payload.swarmId) as any,
           createdAt: event.payload.createdAt,
         });
         return;
@@ -127,10 +117,6 @@ const make = Effect.gen(function* () {
               threadId: payload.threadId as ThreadId,
               kind: "progress",
               summary,
-              sequence: getNextSequence(swarm.id) as number & {
-                readonly FindingId: "FindingId";
-                readonly ThreadId: "ThreadId";
-              },
               createdAt: nowIso(),
             })
             .pipe(

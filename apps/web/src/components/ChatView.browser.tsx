@@ -436,6 +436,8 @@ function createThreadCreatedEvent(threadId: ThreadId, sequence: number): Orchest
       branch: "main",
       worktreePath: null,
       ctfCategory: null,
+      swarmId: null,
+      swarmLabel: null,
       createdAt: NOW_ISO,
       updatedAt: NOW_ISO,
     },

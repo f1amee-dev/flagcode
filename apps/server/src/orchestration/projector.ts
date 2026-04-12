@@ -282,6 +282,8 @@ export function projectEvent(
             branch: payload.branch,
             worktreePath: payload.worktreePath,
             ctfCategory: payload.ctfCategory ?? null,
+            swarmId: payload.swarmId ?? null,
+            swarmLabel: payload.swarmLabel ?? null,
             latestTurn: null,
             createdAt: payload.createdAt,
             updatedAt: payload.updatedAt,

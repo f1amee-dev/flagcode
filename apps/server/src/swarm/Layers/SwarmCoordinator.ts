@@ -63,6 +63,8 @@ const make = Effect.gen(function* () {
           branch: null,
           worktreePath: null,
           ...(swarm.ctfCategory ? { ctfCategory: swarm.ctfCategory } : {}),
+          swarmId,
+          swarmLabel: label,
           createdAt: now,
         } as any);
       }
@@ -71,6 +73,7 @@ const make = Effect.gen(function* () {
         type: "swarm.start",
         commandId: serverCommandId("swarm-start"),
         swarmId,
+        threadIds,
         createdAt: now,
       });
 

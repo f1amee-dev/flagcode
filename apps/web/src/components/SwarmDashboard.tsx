@@ -12,7 +12,6 @@ import {
   SquareIcon,
   ZapIcon,
   CheckCircle2Icon,
-  XCircleIcon,
   ClockIcon,
   AlertTriangleIcon,
 } from "lucide-react";

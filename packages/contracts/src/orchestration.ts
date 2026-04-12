@@ -392,6 +392,8 @@ const ThreadCreateCommand = Schema.Struct({
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
   ctfCategory: Schema.optionalKey(CtfCategory),
+  swarmId: Schema.optionalKey(SwarmId),
+  swarmLabel: Schema.optionalKey(TrimmedNonEmptyString),
   createdAt: IsoDateTime,
 });
 
@@ -563,6 +565,7 @@ const SwarmStartCommand = Schema.Struct({
   type: Schema.Literal("swarm.start"),
   commandId: CommandId,
   swarmId: SwarmId,
+  threadIds: Schema.Array(ThreadId),
   createdAt: IsoDateTime,
 });
 
@@ -786,6 +789,10 @@ export const ThreadCreatedPayload = Schema.Struct({
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
   ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
+  swarmId: Schema.NullOr(SwarmId).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
+  swarmLabel: Schema.NullOr(TrimmedNonEmptyString).pipe(
+    Schema.withDecodingDefault(Effect.succeed(null)),
+  ),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
 });

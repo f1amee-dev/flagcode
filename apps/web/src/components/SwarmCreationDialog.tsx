@@ -111,14 +111,6 @@ export function SwarmCreationDialog({ open, onOpenChange, projectId }: SwarmCrea
         createdAt: new Date().toISOString(),
       });
 
-      // Auto-start
-      await api.orchestration.dispatchCommand({
-        type: "swarm.start",
-        commandId: newCommandId(),
-        swarmId,
-        createdAt: new Date().toISOString(),
-      });
-
       onOpenChange(false);
       // Reset form
       setTitle("");

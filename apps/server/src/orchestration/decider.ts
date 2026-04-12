@@ -166,6 +166,8 @@ export const decideOrchestrationCommand = Effect.fn("decideOrchestrationCommand"
           branch: command.branch,
           worktreePath: command.worktreePath,
           ctfCategory: command.ctfCategory ?? null,
+          swarmId: command.swarmId ?? null,
+          swarmLabel: command.swarmLabel ?? null,
           createdAt: command.createdAt,
           updatedAt: command.createdAt,
         },
@@ -735,7 +737,7 @@ export const decideOrchestrationCommand = Effect.fn("decideOrchestrationCommand"
         type: "swarm.started",
         payload: {
           swarmId: command.swarmId,
-          threadIds: swarm.threadIds,
+          threadIds: command.threadIds,
           createdAt: command.createdAt,
         },
       };

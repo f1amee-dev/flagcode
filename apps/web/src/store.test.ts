@@ -793,6 +793,8 @@ describe("incremental orchestration updates", () => {
         branch: null,
         worktreePath: null,
         ctfCategory: null,
+        swarmId: null,
+        swarmLabel: null,
         createdAt: "2026-02-27T00:00:01.000Z",
         updatedAt: "2026-02-27T00:00:01.000Z",
       }),

@@ -3,7 +3,7 @@ import { Context } from "effect";
 import type { Effect, Stream } from "effect";
 
 export interface SwarmMessageBusShape {
-  readonly postFinding: (finding: SwarmFinding) => Effect.Effect<void>;
+  readonly postFinding: (finding: Omit<SwarmFinding, "sequence">) => Effect.Effect<void>;
   readonly readFindings: (
     swarmId: SwarmId,
     afterSequence?: number,

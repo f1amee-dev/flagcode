@@ -124,6 +124,7 @@ describe("swarm decider", () => {
           type: "swarm.start",
           commandId: "cmd-3" as any,
           swarmId: SWARM_ID,
+          threadIds: [],
           createdAt: new Date().toISOString(),
         },
         rm,
