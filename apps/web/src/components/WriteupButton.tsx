@@ -1,22 +1,26 @@
-import type { ThreadId } from "@flagcode/contracts";
-import { useCallback, useState } from "react";
+import type { EnvironmentId, ThreadId } from "@flagcode/contracts";
+import { scopeThreadRef } from "@flagcode/client-runtime";
+import { useCallback, useMemo, useState } from "react";
 import { FileTextIcon } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { toastManager, type ThreadToastData } from "~/components/ui/toast";
 import { Popover, PopoverPopup, PopoverTrigger } from "~/components/ui/popover";
-import { useStore } from "~/store";
-import { getWsRpcClient } from "~/wsRpcClient";
+import { selectThreadByRef, useStore } from "~/store";
+import { getPrimaryEnvironmentConnection } from "~/environments/runtime";
 
 interface WriteupButtonProps {
   cwd: string;
   activeThreadId: ThreadId;
+  environmentId: EnvironmentId;
 }
 
-export default function WriteupButton({ cwd, activeThreadId }: WriteupButtonProps) {
+export default function WriteupButton({ cwd, activeThreadId, environmentId }: WriteupButtonProps) {
   const [isBusy, setIsBusy] = useState(false);
-  const activeServerThread = useStore((store) =>
-    store.threads.find((thread) => thread.id === activeThreadId),
+  const threadRef = useMemo(
+    () => scopeThreadRef(environmentId, activeThreadId),
+    [environmentId, activeThreadId],
   );
+  const activeServerThread = useStore((store) => selectThreadByRef(store, threadRef));
 
   const hasMessages = (activeServerThread?.messages.length ?? 0) > 0;
   const isDisabled = isBusy || !hasMessages;
@@ -39,7 +43,7 @@ export default function WriteupButton({ cwd, activeThreadId }: WriteupButtonProp
     });
 
     try {
-      const rpc = getWsRpcClient();
+      const rpc = getPrimaryEnvironmentConnection().client;
       const result = await rpc.writeup.generate({
         cwd,
         threadTitle: activeServerThread.title,

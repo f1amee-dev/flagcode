@@ -8,8 +8,8 @@ import {
   ORCHESTRATION_WS_METHODS,
   type ServerSettingsPatch,
   WS_METHODS,
-} from "@t3tools/contracts";
-import { applyGitStatusStreamEvent } from "@t3tools/shared/git";
+} from "@flagcode/contracts";
+import { applyGitStatusStreamEvent } from "@flagcode/shared/git";
 import { Effect, Stream } from "effect";
 
 import { type WsRpcProtocolClient } from "./protocol";
@@ -107,6 +107,9 @@ export interface WsRpcClient {
     readonly getFullThreadDiff: RpcUnaryMethod<typeof ORCHESTRATION_WS_METHODS.getFullThreadDiff>;
     readonly replayEvents: RpcUnaryMethod<typeof ORCHESTRATION_WS_METHODS.replayEvents>;
     readonly onDomainEvent: RpcStreamMethod<typeof WS_METHODS.subscribeOrchestrationDomainEvents>;
+  };
+  readonly writeup: {
+    readonly generate: RpcUnaryMethod<typeof WS_METHODS.writeupGenerate>;
   };
 }
 
@@ -237,6 +240,9 @@ export function createWsRpcClient(transport: WsTransport): WsRpcClient {
           listener,
           options,
         ),
+    },
+    writeup: {
+      generate: (input) => transport.request((client) => client[WS_METHODS.writeupGenerate](input)),
     },
   };
 }

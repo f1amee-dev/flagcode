@@ -18,16 +18,16 @@ import {
   ProviderInteractionMode,
   RuntimeMode,
   TerminalOpenInput,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import {
   parseScopedThreadKey,
   scopedThreadKey,
   scopeProjectRef,
   scopeThreadRef,
-} from "@t3tools/client-runtime";
-import { applyClaudePromptEffortPrefix } from "@t3tools/shared/model";
-import { projectScriptCwd, projectScriptRuntimeEnv } from "@t3tools/shared/projectScripts";
-import { truncate } from "@t3tools/shared/String";
+} from "@flagcode/client-runtime";
+import { applyClaudePromptEffortPrefix } from "@flagcode/shared/model";
+import { projectScriptCwd, projectScriptRuntimeEnv } from "@flagcode/shared/projectScripts";
+import { truncate } from "@flagcode/shared/String";
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useShallow } from "zustand/react/shallow";

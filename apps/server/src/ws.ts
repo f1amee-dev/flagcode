@@ -16,11 +16,12 @@ import {
   ProjectSearchEntriesError,
   ProjectWriteFileError,
   OrchestrationReplayEventsError,
+  TextGenerationError,
   ThreadId,
   type TerminalEvent,
   WS_METHODS,
   WsRpcGroup,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import { clamp } from "effect/Number";
 import { HttpRouter, HttpServerRequest } from "effect/unstable/http";
 import { RpcSerialization, RpcServer } from "effect/unstable/rpc";
@@ -29,6 +30,7 @@ import { CheckpointDiffQuery } from "./checkpointing/Services/CheckpointDiffQuer
 import { ServerConfig } from "./config";
 import { GitCore } from "./git/Services/GitCore";
 import { GitManager } from "./git/Services/GitManager";
+import { TextGeneration } from "./git/Services/TextGeneration";
 import { GitStatusBroadcaster } from "./git/Services/GitStatusBroadcaster";
 import { Keybindings } from "./keybindings";
 import { Open, resolveAvailableEditors } from "./open";
@@ -127,6 +129,7 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
       const serverAuth = yield* ServerAuth;
       const bootstrapCredentials = yield* BootstrapCredentialService;
       const sessions = yield* SessionCredentialService;
+      const textGeneration = yield* TextGeneration;
       const serverCommandId = (tag: string) =>
         CommandId.make(`server:${tag}:${crypto.randomUUID()}`);
 
@@ -904,6 +907,36 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
               );
             }),
             { "rpc.aggregate": "auth" },
+          ),
+        [WS_METHODS.writeupGenerate]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.writeupGenerate,
+            Effect.gen(function* () {
+              const result = yield* textGeneration.generateWriteup({
+                cwd: input.cwd,
+                threadTitle: input.threadTitle,
+                ctfCategory: input.ctfCategory,
+                messages: [...input.messages],
+                modelSelection: input.modelSelection,
+              });
+
+              const fs = yield* Effect.promise(() => import("node:fs/promises"));
+              const path = yield* Effect.promise(() => import("node:path"));
+              const slug = input.threadTitle
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-|-$/g, "")
+                .slice(0, 60);
+              const relativePath = `writeups/${slug || "writeup"}.md`;
+              const absolutePath = path.join(input.cwd, relativePath);
+              yield* Effect.promise(async () => {
+                await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+                await fs.writeFile(absolutePath, result.writeup, "utf-8");
+              });
+
+              return { relativePath, writeup: result.writeup };
+            }),
+            { "rpc.aggregate": "writeup" },
           ),
       });
     }),

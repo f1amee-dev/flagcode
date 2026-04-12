@@ -13,7 +13,7 @@
       },
     },
     "apps/desktop": {
-      "name": "@t3tools/desktop",
+      "name": "@flagcode/desktop",
       "version": "0.0.17",
       "dependencies": {
         "effect": "catalog:",
@@ -21,8 +21,8 @@
         "electron-updater": "^6.6.2",
       },
       "devDependencies": {
-        "@t3tools/contracts": "workspace:*",
-        "@t3tools/shared": "workspace:*",
+        "@flagcode/contracts": "workspace:*",
+        "@flagcode/shared": "workspace:*",
         "@types/node": "catalog:",
         "tsdown": "catalog:",
         "typescript": "catalog:",
@@ -30,7 +30,7 @@
       },
     },
     "apps/marketing": {
-      "name": "@t3tools/marketing",
+      "name": "@flagcode/marketing",
       "version": "0.0.0",
       "dependencies": {
         "astro": "^6.0.4",
@@ -41,10 +41,10 @@
       },
     },
     "apps/server": {
-      "name": "t3",
+      "name": "flagcode",
       "version": "0.0.17",
       "bin": {
-        "t3": "./dist/bin.mjs",
+        "flagcode": "./dist/bin.mjs",
       },
       "dependencies": {
         "@anthropic-ai/claude-agent-sdk": "^0.2.77",
@@ -59,9 +59,9 @@
       "devDependencies": {
         "@effect/language-service": "catalog:",
         "@effect/vitest": "catalog:",
-        "@t3tools/contracts": "workspace:*",
-        "@t3tools/shared": "workspace:*",
-        "@t3tools/web": "workspace:*",
+        "@flagcode/contracts": "workspace:*",
+        "@flagcode/shared": "workspace:*",
+        "@flagcode/web": "workspace:*",
         "@types/bun": "catalog:",
         "@types/node": "catalog:",
         "tsdown": "catalog:",
@@ -70,7 +70,7 @@
       },
     },
     "apps/web": {
-      "name": "@t3tools/web",
+      "name": "@flagcode/web",
       "version": "0.0.17",
       "dependencies": {
         "@base-ui/react": "^1.2.0",
@@ -79,12 +79,12 @@
         "@dnd-kit/sortable": "^10.0.0",
         "@dnd-kit/utilities": "^3.2.2",
         "@effect/atom-react": "catalog:",
+        "@flagcode/client-runtime": "workspace:*",
+        "@flagcode/contracts": "workspace:*",
+        "@flagcode/shared": "workspace:*",
         "@formkit/auto-animate": "^0.9.0",
         "@lexical/react": "^0.41.0",
         "@pierre/diffs": "^1.1.0-beta.16",
-        "@t3tools/client-runtime": "workspace:*",
-        "@t3tools/contracts": "workspace:*",
-        "@t3tools/shared": "workspace:*",
         "@tanstack/react-pacer": "^0.19.4",
         "@tanstack/react-query": "^5.90.0",
         "@tanstack/react-router": "^1.160.2",
@@ -123,10 +123,10 @@
       },
     },
     "packages/client-runtime": {
-      "name": "@t3tools/client-runtime",
+      "name": "@flagcode/client-runtime",
       "version": "0.0.0-alpha.1",
       "dependencies": {
-        "@t3tools/contracts": "workspace:*",
+        "@flagcode/contracts": "workspace:*",
       },
       "devDependencies": {
         "@effect/language-service": "catalog:",
@@ -135,7 +135,7 @@
       },
     },
     "packages/contracts": {
-      "name": "@t3tools/contracts",
+      "name": "@flagcode/contracts",
       "version": "0.0.17",
       "dependencies": {
         "effect": "catalog:",
@@ -149,10 +149,10 @@
       },
     },
     "packages/shared": {
-      "name": "@t3tools/shared",
+      "name": "@flagcode/shared",
       "version": "0.0.0-alpha.1",
       "dependencies": {
-        "@t3tools/contracts": "workspace:*",
+        "@flagcode/contracts": "workspace:*",
         "effect": "catalog:",
       },
       "devDependencies": {
@@ -164,12 +164,12 @@
       },
     },
     "scripts": {
-      "name": "@t3tools/scripts",
+      "name": "@flagcode/scripts",
       "dependencies": {
         "@anthropic-ai/claude-agent-sdk": "^0.2.77",
         "@effect/platform-node": "catalog:",
-        "@t3tools/contracts": "workspace:*",
-        "@t3tools/shared": "workspace:*",
+        "@flagcode/contracts": "workspace:*",
+        "@flagcode/shared": "workspace:*",
         "effect": "catalog:",
       },
       "devDependencies": {
@@ -377,6 +377,20 @@
     "@esbuild/win32-ia32": ["@esbuild/win32-ia32@0.27.4", "", { "os": "win32", "cpu": "ia32" }, "sha512-DAyGLS0Jz5G5iixEbMHi5KdiApqHBWMGzTtMiJ72ZOLhbu/bzxgAe8Ue8CTS3n3HbIUHQz/L51yMdGMeoxXNJw=="],
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.27.4", "", { "os": "win32", "cpu": "x64" }, "sha512-+knoa0BDoeXgkNvvV1vvbZX4+hizelrkwmGJBdT17t8FNPwG2lKemmuMZlmaNQ3ws3DKKCxpb4zRZEIp3UxFCg=="],
+
+    "@flagcode/client-runtime": ["@flagcode/client-runtime@workspace:packages/client-runtime"],
+
+    "@flagcode/contracts": ["@flagcode/contracts@workspace:packages/contracts"],
+
+    "@flagcode/desktop": ["@flagcode/desktop@workspace:apps/desktop"],
+
+    "@flagcode/marketing": ["@flagcode/marketing@workspace:apps/marketing"],
+
+    "@flagcode/scripts": ["@flagcode/scripts@workspace:scripts"],
+
+    "@flagcode/shared": ["@flagcode/shared@workspace:packages/shared"],
+
+    "@flagcode/web": ["@flagcode/web@workspace:apps/web"],
 
     "@floating-ui/core": ["@floating-ui/core@1.7.5", "", { "dependencies": { "@floating-ui/utils": "^0.2.11" } }, "sha512-1Ih4WTWyw0+lKyFMcBHGbb5U5FtuHJuujoyyr5zTaWS5EYMeT6Jb2AuDeftsCsEuchO+mM2ij5+q9crhydzLhQ=="],
 
@@ -679,20 +693,6 @@
     "@standard-schema/spec": ["@standard-schema/spec@1.1.0", "", {}, "sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w=="],
 
     "@szmarczak/http-timer": ["@szmarczak/http-timer@4.0.6", "", { "dependencies": { "defer-to-connect": "^2.0.0" } }, "sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w=="],
-
-    "@t3tools/client-runtime": ["@t3tools/client-runtime@workspace:packages/client-runtime"],
-
-    "@t3tools/contracts": ["@t3tools/contracts@workspace:packages/contracts"],
-
-    "@t3tools/desktop": ["@t3tools/desktop@workspace:apps/desktop"],
-
-    "@t3tools/marketing": ["@t3tools/marketing@workspace:apps/marketing"],
-
-    "@t3tools/scripts": ["@t3tools/scripts@workspace:scripts"],
-
-    "@t3tools/shared": ["@t3tools/shared@workspace:packages/shared"],
-
-    "@t3tools/web": ["@t3tools/web@workspace:apps/web"],
 
     "@tailwindcss/node": ["@tailwindcss/node@4.2.1", "", { "dependencies": { "@jridgewell/remapping": "^2.3.5", "enhanced-resolve": "^5.19.0", "jiti": "^2.6.1", "lightningcss": "1.31.1", "magic-string": "^0.30.21", "source-map-js": "^1.2.1", "tailwindcss": "4.2.1" } }, "sha512-jlx6sLk4EOwO6hHe1oCGm1Q4AN/s0rSrTTPBGPM0/RQ6Uylwq17FuU8IeJJKEjtc6K6O07zsvP+gDO6MMWo7pg=="],
 
@@ -1087,6 +1087,8 @@
     "fill-range": ["fill-range@7.1.1", "", { "dependencies": { "to-regex-range": "^5.0.1" } }, "sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg=="],
 
     "find-my-way-ts": ["find-my-way-ts@0.1.6", "", {}, "sha512-a85L9ZoXtNAey3Y6Z+eBWW658kO/MwR7zIafkIUPUMf3isZG0NCs2pjW2wtjxAKuJPxMAsHUIP4ZPGv0o5gyTA=="],
+
+    "flagcode": ["flagcode@workspace:apps/server"],
 
     "flattie": ["flattie@1.1.1", "", {}, "sha512-9UbaD6XdAL97+k/n+N7JwX46K/M6Zc6KcFYskrYL8wbBV/Uyk0CTAMY0VT+qiK5PM7AIc9aTWYtq65U7T+aCNQ=="],
 
@@ -1629,8 +1631,6 @@
     "sumchecker": ["sumchecker@3.0.1", "", { "dependencies": { "debug": "^4.1.0" } }, "sha512-MvjXzkz/BOfyVDkG0oFOtBxHX2u3gKbMHIF/dXblZsgD3BWOFLmHovIpZY7BykJdAjcqRCBi1WYBNdEC9yI7vg=="],
 
     "svgo": ["svgo@4.0.1", "", { "dependencies": { "commander": "^11.1.0", "css-select": "^5.1.0", "css-tree": "^3.0.1", "css-what": "^6.1.0", "csso": "^5.0.5", "picocolors": "^1.1.1", "sax": "^1.5.0" }, "bin": "./bin/svgo.js" }, "sha512-XDpWUOPC6FEibaLzjfe0ucaV0YrOjYotGJO1WpF0Zd+n6ZGEQUsSugaoLq9QkEZtAfQIxT42UChcssDVPP3+/w=="],
-
-    "t3": ["t3@workspace:apps/server"],
 
     "tabbable": ["tabbable@6.4.0", "", {}, "sha512-05PUHKSNE8ou2dwIxTngl4EzcnsCDZGJ/iCLtDflR/SHB/ny14rXc+qU5P4mG9JkusiV7EivzY9Mhm55AzAvCg=="],
 

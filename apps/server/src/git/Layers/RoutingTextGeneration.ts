@@ -24,11 +24,11 @@ import { ClaudeTextGenerationLive } from "./ClaudeTextGeneration.ts";
 // ---------------------------------------------------------------------------
 
 class CodexTextGen extends Context.Service<CodexTextGen, TextGenerationShape>()(
-  "t3/git/Layers/RoutingTextGeneration/CodexTextGen",
+  "flagcode/git/Layers/RoutingTextGeneration/CodexTextGen",
 ) {}
 
 class ClaudeTextGen extends Context.Service<ClaudeTextGen, TextGenerationShape>()(
-  "t3/git/Layers/RoutingTextGeneration/ClaudeTextGen",
+  "flagcode/git/Layers/RoutingTextGeneration/ClaudeTextGen",
 ) {}
 
 // ---------------------------------------------------------------------------
@@ -48,6 +48,7 @@ const makeRoutingTextGeneration = Effect.gen(function* () {
     generatePrContent: (input) => route(input.modelSelection.provider).generatePrContent(input),
     generateBranchName: (input) => route(input.modelSelection.provider).generateBranchName(input),
     generateThreadTitle: (input) => route(input.modelSelection.provider).generateThreadTitle(input),
+    generateWriteup: (input) => route(input.modelSelection.provider).generateWriteup(input),
   } satisfies TextGenerationShape;
 });
 

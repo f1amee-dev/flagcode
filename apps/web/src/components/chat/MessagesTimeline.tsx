@@ -1,4 +1,4 @@
-import { type EnvironmentId, type MessageId, type TurnId } from "@t3tools/contracts";
+import { type EnvironmentId, type MessageId, type TurnId } from "@flagcode/contracts";
 import {
   memo,
   useCallback,
@@ -55,7 +55,7 @@ import {
   type ParsedTerminalContextEntry,
 } from "~/lib/terminalContext";
 import { cn } from "~/lib/utils";
-import { type TimestampFormat } from "@t3tools/contracts/settings";
+import { type TimestampFormat } from "@flagcode/contracts/settings";
 import { formatTimestamp } from "../../timestampFormat";
 
 import {

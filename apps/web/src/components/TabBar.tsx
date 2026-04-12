@@ -21,8 +21,8 @@ export function TabBar() {
           return (
             <Link
               key={tab.threadId}
-              to="/$threadId"
-              params={{ threadId: tab.threadId }}
+              to="/$environmentId/$threadId"
+              params={{ environmentId: tab.environmentId, threadId: tab.threadId }}
               className={cn(
                 "group flex min-w-0 max-w-48 shrink-0 items-center gap-1.5 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground",
                 isActive && "bg-accent text-foreground",

@@ -1,5 +1,5 @@
-import { scopeProjectRef, scopeThreadRef } from "@t3tools/client-runtime";
-import type { EnvironmentId, ThreadId } from "@t3tools/contracts";
+import { scopeProjectRef, scopeThreadRef } from "@flagcode/client-runtime";
+import type { EnvironmentId, ThreadId } from "@flagcode/contracts";
 import { memo, useMemo } from "react";
 
 import { useComposerDraftStore, type DraftId } from "../composerDraftStore";

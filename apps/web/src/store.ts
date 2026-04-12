@@ -16,8 +16,8 @@ import type {
   ScopedThreadRef,
   ThreadId,
   TurnId,
-} from "@t3tools/contracts";
-import { resolveModelSlugForProvider } from "@t3tools/shared/model";
+} from "@flagcode/contracts";
+import { resolveModelSlugForProvider } from "@flagcode/shared/model";
 import { create } from "zustand";
 import {
   derivePendingApprovals,
@@ -214,6 +214,7 @@ function mapThread(thread: OrchestrationThread, environmentId: EnvironmentId): T
     pendingSourceProposedPlan: thread.latestTurn?.sourceProposedPlan,
     branch: thread.branch,
     worktreePath: thread.worktreePath,
+    ctfCategory: thread.ctfCategory,
     turnDiffSummaries: thread.checkpoints.map(mapTurnDiffSummary),
     activities: thread.activities.map((activity) => ({ ...activity })),
   };
@@ -235,6 +236,7 @@ function toThreadShell(thread: Thread): ThreadShell {
     updatedAt: thread.updatedAt,
     branch: thread.branch,
     worktreePath: thread.worktreePath,
+    ctfCategory: thread.ctfCategory,
   };
 }
 
@@ -1090,6 +1092,7 @@ function applyEnvironmentOrchestrationEvent(
           interactionMode: event.payload.interactionMode,
           branch: event.payload.branch,
           worktreePath: event.payload.worktreePath,
+          ctfCategory: event.payload.ctfCategory,
           latestTurn: null,
           createdAt: event.payload.createdAt,
           updatedAt: event.payload.updatedAt,

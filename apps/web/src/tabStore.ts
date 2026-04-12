@@ -1,9 +1,10 @@
-import { type CtfCategory, type ThreadId } from "@flagcode/contracts";
+import { type CtfCategory, type EnvironmentId, type ThreadId } from "@flagcode/contracts";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export interface TabInfo {
   threadId: ThreadId;
+  environmentId: EnvironmentId;
   title: string;
   projectId: string;
   ctfCategory?: CtfCategory | null;

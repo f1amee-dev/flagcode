@@ -1,5 +1,5 @@
-import { scopeThreadRef } from "@t3tools/client-runtime";
-import { EnvironmentId, ProjectId, ThreadId, TurnId } from "@t3tools/contracts";
+import { scopeThreadRef } from "@flagcode/client-runtime";
+import { EnvironmentId, ProjectId, ThreadId, TurnId } from "@flagcode/contracts";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { type EnvironmentState, useStore } from "../store";
 import { type Thread } from "../types";
@@ -226,6 +226,7 @@ const makeThread = (input?: {
     : null,
   branch: null,
   worktreePath: null,
+  ctfCategory: null,
   turnDiffSummaries: [],
   activities: [],
 });
@@ -271,6 +272,7 @@ function setStoreThreads(threads: ReadonlyArray<ReturnType<typeof makeThread>>) 
           updatedAt: thread.updatedAt,
           branch: thread.branch,
           worktreePath: thread.worktreePath,
+          ctfCategory: thread.ctfCategory,
         },
       ]),
     ),
@@ -467,6 +469,7 @@ describe("hasServerAcknowledgedLocalDispatch", () => {
       latestTurn: previousLatestTurn,
       branch: null,
       worktreePath: null,
+      ctfCategory: null,
       turnDiffSummaries: [],
       activities: [],
     });
@@ -504,6 +507,7 @@ describe("hasServerAcknowledgedLocalDispatch", () => {
       latestTurn: previousLatestTurn,
       branch: null,
       worktreePath: null,
+      ctfCategory: null,
       turnDiffSummaries: [],
       activities: [],
     });
@@ -550,6 +554,7 @@ describe("hasServerAcknowledgedLocalDispatch", () => {
       latestTurn: previousLatestTurn,
       branch: null,
       worktreePath: null,
+      ctfCategory: null,
       turnDiffSummaries: [],
       activities: [],
     });

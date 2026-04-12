@@ -19,7 +19,7 @@ import {
   sortProjectsForSidebar,
   THREAD_JUMP_HINT_SHOW_DELAY_MS,
 } from "./Sidebar.logic";
-import { EnvironmentId, OrchestrationLatestTurn, ProjectId, ThreadId } from "@t3tools/contracts";
+import { EnvironmentId, OrchestrationLatestTurn, ProjectId, ThreadId } from "@flagcode/contracts";
 import {
   DEFAULT_INTERACTION_MODE,
   DEFAULT_RUNTIME_MODE,
@@ -660,6 +660,7 @@ function makeThread(overrides: Partial<Thread> = {}): Thread {
     latestTurn: null,
     branch: null,
     worktreePath: null,
+    ctfCategory: null,
     turnDiffSummaries: [],
     activities: [],
     ...overrides,

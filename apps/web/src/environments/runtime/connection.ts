@@ -5,8 +5,8 @@ import type {
   ServerConfig,
   ServerLifecycleWelcomePayload,
   TerminalEvent,
-} from "@t3tools/contracts";
-import type { KnownEnvironment } from "@t3tools/client-runtime";
+} from "@flagcode/contracts";
+import type { KnownEnvironment } from "@flagcode/client-runtime";
 
 import {
   deriveReplayRetryDecision,

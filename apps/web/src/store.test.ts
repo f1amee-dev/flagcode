@@ -1,4 +1,4 @@
-import { scopeThreadRef } from "@t3tools/client-runtime";
+import { scopeThreadRef } from "@flagcode/client-runtime";
 import {
   CheckpointRef,
   DEFAULT_MODEL_BY_PROVIDER,
@@ -129,6 +129,7 @@ function makeState(thread: Thread): AppState {
         updatedAt: thread.updatedAt,
         branch: thread.branch,
         worktreePath: thread.worktreePath,
+        ctfCategory: thread.ctfCategory,
       },
     },
     threadSessionById: {

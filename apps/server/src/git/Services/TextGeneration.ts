@@ -8,9 +8,9 @@
  */
 import { Context } from "effect";
 import type { Effect } from "effect";
-import type { ChatAttachment, ModelSelection } from "@t3tools/contracts";
+import type { ChatAttachment, ModelSelection } from "@flagcode/contracts";
 
-import type { TextGenerationError } from "@t3tools/contracts";
+import type { TextGenerationError } from "@flagcode/contracts";
 
 /** Providers that support git text generation (commit messages, PR content, branch names). */
 export type TextGenerationProvider = "codex" | "claudeAgent";
@@ -73,6 +73,18 @@ export interface ThreadTitleGenerationResult {
   title: string;
 }
 
+export interface WriteupGenerationInput {
+  cwd: string;
+  threadTitle: string;
+  ctfCategory: string | null;
+  messages: ReadonlyArray<{ role: string; text: string }>;
+  modelSelection: ModelSelection;
+}
+
+export interface WriteupGenerationResult {
+  writeup: string;
+}
+
 export interface TextGenerationService {
   generateCommitMessage(
     input: CommitMessageGenerationInput,
@@ -113,11 +125,18 @@ export interface TextGenerationShape {
   readonly generateThreadTitle: (
     input: ThreadTitleGenerationInput,
   ) => Effect.Effect<ThreadTitleGenerationResult, TextGenerationError>;
+
+  /**
+   * Generate a CTF writeup from a thread's conversation messages.
+   */
+  readonly generateWriteup: (
+    input: WriteupGenerationInput,
+  ) => Effect.Effect<WriteupGenerationResult, TextGenerationError>;
 }
 
 /**
  * TextGeneration - Service tag for commit and PR text generation.
  */
 export class TextGeneration extends Context.Service<TextGeneration, TextGenerationShape>()(
-  "t3/git/Services/TextGeneration",
+  "flagcode/git/Services/TextGeneration",
 ) {}

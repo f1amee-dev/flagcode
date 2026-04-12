@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_RUNTIME_MODE, EnvironmentId, ProjectId, ThreadId } from "@t3tools/contracts";
+import { DEFAULT_RUNTIME_MODE, EnvironmentId, ProjectId, ThreadId } from "@flagcode/contracts";
 import type { Thread } from "../types";
 import { getLatestThreadForProject, sortThreads } from "./threadSort";
 
@@ -26,6 +26,7 @@ function makeThread(overrides: Partial<Thread> = {}): Thread {
     latestTurn: null,
     branch: null,
     worktreePath: null,
+    ctfCategory: null,
     turnDiffSummaries: [],
     activities: [],
     ...overrides,

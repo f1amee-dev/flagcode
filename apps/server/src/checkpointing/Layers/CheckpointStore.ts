@@ -137,7 +137,7 @@ const makeCheckpointStore = Effect.gen(function* () {
           });
         }
 
-        const message = `t3 checkpoint ref=${input.checkpointRef}`;
+        const message = `flagcode checkpoint ref=${input.checkpointRef}`;
         const commitTreeResult = yield* git.execute({
           operation,
           cwd: input.cwd,

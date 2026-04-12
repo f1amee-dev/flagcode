@@ -131,7 +131,7 @@ it.layer(TestLayer)("WorkspaceEntriesLive", (it) => {
 
     it.effect("prioritizes exact basename matches ahead of broader path matches", () =>
       Effect.gen(function* () {
-        const cwd = yield* makeTempDir({ prefix: "t3code-workspace-exact-ranking-" });
+        const cwd = yield* makeTempDir({ prefix: "flagcode-workspace-exact-ranking-" });
         yield* writeTextFile(cwd, "src/components/Composer.tsx");
         yield* writeTextFile(cwd, "docs/composer.tsx-notes.md");
 

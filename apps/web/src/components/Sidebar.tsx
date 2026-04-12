@@ -41,18 +41,18 @@ import {
   type ThreadEnvMode,
   ThreadId,
   type GitStatusResult,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import {
   scopedProjectKey,
   scopedThreadKey,
   scopeProjectRef,
   scopeThreadRef,
-} from "@t3tools/client-runtime";
+} from "@flagcode/client-runtime";
 import { Link, useLocation, useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import {
   type SidebarProjectSortOrder,
   type SidebarThreadSortOrder,
-} from "@t3tools/contracts/settings";
+} from "@flagcode/contracts/settings";
 import { usePrimaryEnvironmentId } from "../environments/primary";
 import { isElectron } from "../env";
 import { APP_STAGE_LABEL, APP_VERSION } from "../branding";

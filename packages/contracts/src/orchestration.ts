@@ -295,7 +295,7 @@ export const OrchestrationThread = Schema.Struct({
   ),
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
-  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(() => null)),
+  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
   latestTurn: Schema.NullOr(OrchestrationLatestTurn),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
@@ -704,7 +704,7 @@ export const ThreadCreatedPayload = Schema.Struct({
   ),
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
-  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(() => null)),
+  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
 });

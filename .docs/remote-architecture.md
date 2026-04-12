@@ -1,6 +1,6 @@
 # Remote Architecture
 
-This document describes the target architecture for first-class remote environments in T3 Code.
+This document describes the target architecture for first-class remote environments in FlagCode.
 
 It is intentionally architecture-first. It does not define a complete implementation plan or user-facing rollout checklist. The goal is to establish the core model so remote support can be added without another broad rewrite.
 
@@ -101,7 +101,7 @@ This is the key abstraction that keeps SSH from taking over the model.
 
 A single environment may have many endpoints:
 
-- `wss://t3.example.com`
+- `wss://flagcode.example.com`
 - `ws://10.0.0.25:3773`
 - a tunneled relay URL
 - a desktop-managed SSH tunnel that resolves to a local forwarded WebSocket URL
@@ -141,7 +141,7 @@ They do not answer:
 Examples:
 
 - `ws://10.0.0.15:3773`
-- `wss://t3.example.com`
+- `wss://flagcode.example.com`
 
 This is the base model and should be the first-class default.
 

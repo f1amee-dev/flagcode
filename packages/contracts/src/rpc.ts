@@ -73,6 +73,8 @@ import {
   ServerUpsertKeybindingResult,
 } from "./server";
 import { ServerSettings, ServerSettingsError, ServerSettingsPatch } from "./settings";
+import { TextGenerationError } from "./git";
+import { WriteupGenerateInput, WriteupGenerateResult } from "./writeup";
 
 export const WS_METHODS = {
   // Project registry methods
@@ -120,6 +122,9 @@ export const WS_METHODS = {
   subscribeServerConfig: "subscribeServerConfig",
   subscribeServerLifecycle: "subscribeServerLifecycle",
   subscribeAuthAccess: "subscribeAuthAccess",
+
+  // FlagCode-specific methods
+  writeupGenerate: "writeup.generate",
 } as const;
 
 export const WsServerUpsertKeybindingRpc = Rpc.make(WS_METHODS.serverUpsertKeybinding, {
@@ -342,6 +347,12 @@ export const WsSubscribeAuthAccessRpc = Rpc.make(WS_METHODS.subscribeAuthAccess,
   stream: true,
 });
 
+export const WsWriteupGenerateRpc = Rpc.make(WS_METHODS.writeupGenerate, {
+  payload: WriteupGenerateInput,
+  success: WriteupGenerateResult,
+  error: TextGenerationError,
+});
+
 export const WsRpcGroup = RpcGroup.make(
   WsServerGetConfigRpc,
   WsServerRefreshProvidersRpc,
@@ -379,4 +390,5 @@ export const WsRpcGroup = RpcGroup.make(
   WsOrchestrationGetTurnDiffRpc,
   WsOrchestrationGetFullThreadDiffRpc,
   WsOrchestrationReplayEventsRpc,
+  WsWriteupGenerateRpc,
 );

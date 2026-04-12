@@ -1,7 +1,7 @@
 "use client";
 
-import { scopeProjectRef, scopeThreadRef } from "@t3tools/client-runtime";
-import type { ProjectId } from "@t3tools/contracts";
+import { scopeProjectRef, scopeThreadRef } from "@flagcode/client-runtime";
+import type { ProjectId } from "@flagcode/contracts";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import {
   ArrowDownIcon,

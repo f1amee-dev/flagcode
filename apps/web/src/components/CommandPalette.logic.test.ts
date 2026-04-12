@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { EnvironmentId, ProjectId, ThreadId } from "@t3tools/contracts";
+import { EnvironmentId, ProjectId, ThreadId } from "@flagcode/contracts";
 import type { Thread } from "../types";
 import {
   buildThreadActionItems,
@@ -30,6 +30,7 @@ function makeThread(overrides: Partial<Thread> = {}): Thread {
     latestTurn: null,
     branch: null,
     worktreePath: null,
+    ctfCategory: null,
     turnDiffSummaries: [],
     activities: [],
     ...overrides,

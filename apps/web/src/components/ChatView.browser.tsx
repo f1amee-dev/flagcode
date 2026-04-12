@@ -16,13 +16,13 @@ import {
   WS_METHODS,
   OrchestrationSessionStatus,
   DEFAULT_SERVER_SETTINGS,
-} from "@t3tools/contracts";
+} from "@flagcode/contracts";
 import {
   scopedProjectKey,
   scopedThreadKey,
   scopeProjectRef,
   scopeThreadRef,
-} from "@t3tools/client-runtime";
+} from "@flagcode/client-runtime";
 import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
 import { HttpResponse, http, ws } from "msw";
 import { setupWorker } from "msw/browser";
@@ -48,7 +48,7 @@ import { useUiStateStore } from "../uiStateStore";
 import { createAuthenticatedSessionHandlers } from "../../test/authHttpHandlers";
 import { BrowserWsRpcHarness, type NormalizedWsRpcRequestBody } from "../../test/wsRpcHarness";
 import { estimateTimelineMessageHeight } from "./timelineHeight";
-import { DEFAULT_CLIENT_SETTINGS } from "@t3tools/contracts/settings";
+import { DEFAULT_CLIENT_SETTINGS } from "@flagcode/contracts/settings";
 
 vi.mock("../lib/gitStatusState", () => ({
   useGitStatus: () => ({ data: null, error: null, cause: null, isPending: false }),
@@ -159,7 +159,7 @@ function createBaseServerConfig(): ServerConfig {
       sessionCookieName: "t3_session",
     },
     cwd: "/repo/project",
-    keybindingsConfigPath: "/repo/project/.t3code-keybindings.json",
+    keybindingsConfigPath: "/repo/project/.flagcode-keybindings.json",
     keybindings: [],
     issues: [],
     providers: [
@@ -178,7 +178,7 @@ function createBaseServerConfig(): ServerConfig {
     ],
     availableEditors: [],
     observability: {
-      logsDirectoryPath: "/repo/project/.t3/logs",
+      logsDirectoryPath: "/repo/project/.flagcode/logs",
       localTracingEnabled: true,
       otlpTracesEnabled: false,
       otlpMetricsEnabled: false,
@@ -316,6 +316,7 @@ function createSnapshotForTargetUser(options: {
         runtimeMode: "full-access",
         branch: "main",
         worktreePath: null,
+        ctfCategory: null,
         latestTurn: null,
         createdAt: NOW_ISO,
         updatedAt: NOW_ISO,
@@ -381,6 +382,7 @@ function addThreadToSnapshot(
         runtimeMode: "full-access",
         branch: "main",
         worktreePath: null,
+        ctfCategory: null,
         latestTurn: null,
         createdAt: NOW_ISO,
         updatedAt: NOW_ISO,
@@ -428,6 +430,7 @@ function createThreadCreatedEvent(threadId: ThreadId, sequence: number): Orchest
       interactionMode: "default",
       branch: "main",
       worktreePath: null,
+      ctfCategory: null,
       createdAt: NOW_ISO,
       updatedAt: NOW_ISO,
     },
@@ -690,6 +693,7 @@ function createSnapshotWithSecondaryProject(options?: {
           runtimeMode: "full-access",
           branch: "release/docs-portal",
           worktreePath: null,
+          ctfCategory: null,
           latestTurn: null,
           createdAt: isoAt(30),
           updatedAt: isoAt(31),
@@ -722,6 +726,7 @@ function createSnapshotWithSecondaryProject(options?: {
           runtimeMode: "full-access",
           branch: "release/docs-archive",
           worktreePath: null,
+          ctfCategory: null,
           latestTurn: null,
           createdAt: isoAt(24),
           updatedAt: isoAt(25),
@@ -1934,10 +1939,10 @@ describe("ChatView timeline estimator parity (full app)", () => {
             cwd: "/repo/project",
             worktreePath: null,
             env: {
-              T3CODE_PROJECT_ROOT: "/repo/project",
+              FLAGCODE_PROJECT_ROOT: "/repo/project",
             },
           });
-          expect(openRequest?.env?.T3CODE_WORKTREE_PATH).toBeUndefined();
+          expect(openRequest?.env?.FLAGCODE_WORKTREE_PATH).toBeUndefined();
         },
         { timeout: 8_000, interval: 16 },
       );
@@ -2102,7 +2107,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
   });
 
   it("falls back to the first installed editor when the stored favorite is unavailable", async () => {
-    localStorage.setItem("t3code:last-editor", JSON.stringify("vscodium"));
+    localStorage.setItem("flagcode:last-editor", JSON.stringify("vscodium"));
     setDraftThreadWithoutWorktree();
 
     const mounted = await mountChatView({
@@ -2202,7 +2207,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
             threadId: THREAD_ID,
             cwd: "/repo/project",
             env: {
-              T3CODE_PROJECT_ROOT: "/repo/project",
+              FLAGCODE_PROJECT_ROOT: "/repo/project",
             },
           });
         },
@@ -2281,8 +2286,8 @@ describe("ChatView timeline estimator parity (full app)", () => {
             threadId: THREAD_ID,
             cwd: "/repo/worktrees/feature-draft",
             env: {
-              T3CODE_PROJECT_ROOT: "/repo/project",
-              T3CODE_WORKTREE_PATH: "/repo/worktrees/feature-draft",
+              FLAGCODE_PROJECT_ROOT: "/repo/project",
+              FLAGCODE_WORKTREE_PATH: "/repo/worktrees/feature-draft",
             },
           });
         },
@@ -2331,7 +2336,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
             pullRequest: {
               number: 1359,
               title: "Add thread archiving and settings navigation",
-              url: "https://github.com/pingdotgg/t3code/pull/1359",
+              url: "https://github.com/pingdotgg/flagcode/pull/1359",
               baseBranch: "main",
               headBranch: "archive-settings-overhaul",
               state: "open",
@@ -2343,7 +2348,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
             pullRequest: {
               number: 1359,
               title: "Add thread archiving and settings navigation",
-              url: "https://github.com/pingdotgg/t3code/pull/1359",
+              url: "https://github.com/pingdotgg/flagcode/pull/1359",
               baseBranch: "main",
               headBranch: "archive-settings-overhaul",
               state: "open",
@@ -2496,7 +2501,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
               prepareWorktree: {
                 projectCwd: "/repo/project",
                 baseBranch: "main",
-                branch: expect.stringMatching(/^t3code\/[0-9a-f]{8}$/),
+                branch: expect.stringMatching(/^flagcode\/[0-9a-f]{8}$/),
               },
               runSetupScript: true,
             },
@@ -3218,7 +3223,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
 
   it("shows the confirm archive action after clicking the archive button", async () => {
     localStorage.setItem(
-      "t3code:client-settings:v1",
+      "flagcode:client-settings:v1",
       JSON.stringify({
         ...DEFAULT_CLIENT_SETTINGS,
         confirmThreadArchive: true,
@@ -3247,7 +3252,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
       await expect.element(confirmButton).toBeInTheDocument();
       await expect.element(confirmButton).toBeVisible();
     } finally {
-      localStorage.removeItem("t3code:client-settings:v1");
+      localStorage.removeItem("flagcode:client-settings:v1");
       await mounted.cleanup();
     }
   });
@@ -4272,7 +4277,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
       snapshot: createSnapshotWithPlanFollowUpPrompt({
         modelSelection: { provider: "codex", model: "gpt-5.3-codex-spark" },
         planMarkdown:
-          "# Imaginary Long-Range Plan: T3 Code Adaptive Orchestration and Safe-Delay Execution Initiative",
+          "# Imaginary Long-Range Plan: FlagCode Adaptive Orchestration and Safe-Delay Execution Initiative",
       }),
     });
 
@@ -4302,7 +4307,7 @@ describe("ChatView timeline estimator parity (full app)", () => {
       snapshot: createSnapshotWithPlanFollowUpPrompt({
         modelSelection: { provider: "codex", model: "gpt-5.3-codex-spark" },
         planMarkdown:
-          "# Imaginary Long-Range Plan: T3 Code Adaptive Orchestration and Safe-Delay Execution Initiative",
+          "# Imaginary Long-Range Plan: FlagCode Adaptive Orchestration and Safe-Delay Execution Initiative",
       }),
     });
 
