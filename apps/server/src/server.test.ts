@@ -816,7 +816,7 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
         "browser-session-cookie",
         "bearer-session-token",
       ]);
-      assert.isTrue(body.auth.sessionCookieName.startsWith("t3_session_"));
+      assert.isTrue(body.auth.sessionCookieName.startsWith("flagcode_session_"));
     }).pipe(Effect.provide(NodeHttpServer.layerTest)),
   );
 
@@ -2839,15 +2839,15 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
   it.effect("enriches replayed project events with repository identity metadata", () =>
     Effect.gen(function* () {
       const repositoryIdentity = {
-        canonicalKey: "github.com/t3tools/flagcode",
+        canonicalKey: "github.com/flagteam/flagcode",
         locator: {
           source: "git-remote" as const,
           remoteName: "origin",
-          remoteUrl: "git@github.com:T3Tools/flagcode.git",
+          remoteUrl: "git@github.com:FlagTeam/flagcode.git",
         },
-        displayName: "T3Tools/flagcode",
+        displayName: "FlagTeam/flagcode",
         provider: "github",
-        owner: "T3Tools",
+        owner: "FlagTeam",
         name: "flagcode",
       };
 
@@ -3409,15 +3409,15 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
     Effect.gen(function* () {
       let resolveCalls = 0;
       const repositoryIdentity = {
-        canonicalKey: "github.com/t3tools/flagcode",
+        canonicalKey: "github.com/flagteam/flagcode",
         locator: {
           source: "git-remote" as const,
           remoteName: "origin",
-          remoteUrl: "git@github.com:t3tools/flagcode.git",
+          remoteUrl: "git@github.com:flagteam/flagcode.git",
         },
-        displayName: "t3tools/flagcode",
+        displayName: "flagteam/flagcode",
         provider: "github" as const,
-        owner: "t3tools",
+        owner: "flagteam",
         name: "flagcode",
       };
 
@@ -3481,15 +3481,15 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
   it.effect("enriches subscribed project meta updates with repository identity metadata", () =>
     Effect.gen(function* () {
       const repositoryIdentity = {
-        canonicalKey: "github.com/t3tools/flagcode",
+        canonicalKey: "github.com/flagteam/flagcode",
         locator: {
           source: "git-remote" as const,
           remoteName: "upstream",
-          remoteUrl: "git@github.com:T3Tools/flagcode.git",
+          remoteUrl: "git@github.com:FlagTeam/flagcode.git",
         },
-        displayName: "T3Tools/flagcode",
+        displayName: "FlagTeam/flagcode",
         provider: "github",
-        owner: "T3Tools",
+        owner: "FlagTeam",
         name: "flagcode",
       };
 

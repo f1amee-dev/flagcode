@@ -138,7 +138,7 @@ describe("remote environment api", () => {
               policy: "remote-reachable",
               bootstrapMethods: ["one-time-token"],
               sessionMethods: ["browser-session-cookie", "bearer-session-token"],
-              sessionCookieName: "t3_session",
+              sessionCookieName: "flagcode_session",
             },
             role: "client",
             sessionMethod: "bearer-session-token",

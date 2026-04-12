@@ -374,6 +374,9 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
                 interactionMode: bootstrap.createThread.interactionMode,
                 branch: bootstrap.createThread.branch,
                 worktreePath: bootstrap.createThread.worktreePath,
+                ...(bootstrap.createThread.ctfCategory
+                  ? { ctfCategory: bootstrap.createThread.ctfCategory }
+                  : {}),
                 createdAt: bootstrap.createThread.createdAt,
               });
               createdThread = true;

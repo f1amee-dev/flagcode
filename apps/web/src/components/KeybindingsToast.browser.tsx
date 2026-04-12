@@ -64,7 +64,7 @@ function createBaseServerConfig(): ServerConfig {
       policy: "loopback-browser",
       bootstrapMethods: ["one-time-token"],
       sessionMethods: ["browser-session-cookie", "bearer-session-token"],
-      sessionCookieName: "t3_session",
+      sessionCookieName: "flagcode_session",
     },
     cwd: "/repo/project",
     keybindingsConfigPath: "/repo/project/.flagcode-keybindings.json",

@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import type { CtfCategory, ModelSelection, SwarmMemberConfig } from "@flagcode/contracts";
 import { SwarmId } from "@flagcode/contracts";
+import { DEFAULT_MODEL_BY_PROVIDER } from "@flagcode/contracts";
 
 import {
   Dialog,
@@ -16,27 +17,37 @@ import { readEnvironmentApi } from "../environmentApi";
 import { newCommandId } from "../lib/utils";
 import { useStore } from "../store";
 import { PlusIcon, TrashIcon, ZapIcon } from "lucide-react";
+import { CtfCategoryPicker } from "./chat/CtfCategoryPicker";
 
-const CTF_CATEGORIES: CtfCategory[] = [
-  "crypto",
-  "pwn",
-  "reverse-engineering",
-  "web",
-  "forensics",
-  "misc",
-];
-
-const DEFAULT_MODELS: Array<{ label: string; selection: ModelSelection }> = [
+/**
+ * Available model choices for swarm solvers.
+ * Uses the same canonical model slugs from @flagcode/contracts.
+ */
+const SWARM_MODEL_OPTIONS: Array<{
+  label: string;
+  provider: "claudeAgent" | "codex";
+  selection: ModelSelection;
+}> = [
   {
-    label: "Claude Sonnet",
-    selection: { provider: "claudeAgent", model: "claude-sonnet-4-20250514" },
+    label: "Claude Sonnet 4.6",
+    provider: "claudeAgent",
+    selection: { provider: "claudeAgent", model: "claude-sonnet-4-6" },
   },
   {
-    label: "Claude Opus",
-    selection: { provider: "claudeAgent", model: "claude-opus-4-20250514" },
+    label: "Claude Opus 4.6",
+    provider: "claudeAgent",
+    selection: { provider: "claudeAgent", model: "claude-opus-4-6" },
   },
-  { label: "o3", selection: { provider: "codex", model: "o3" } },
-  { label: "o4-mini", selection: { provider: "codex", model: "o4-mini" } },
+  {
+    label: "Claude Haiku 4.5",
+    provider: "claudeAgent",
+    selection: { provider: "claudeAgent", model: "claude-haiku-4-5" },
+  },
+  {
+    label: "GPT 5.4 (Codex)",
+    provider: "codex",
+    selection: { provider: "codex", model: DEFAULT_MODEL_BY_PROVIDER.codex },
+  },
 ];
 
 interface SolverRow {
@@ -56,7 +67,7 @@ export function SwarmCreationDialog({ open, onOpenChange, projectId }: SwarmCrea
 
   const [title, setTitle] = useState("");
   const [challengePrompt, setChallengePrompt] = useState("");
-  const [ctfCategory, setCtfCategory] = useState<CtfCategory | "">("misc");
+  const [ctfCategory, setCtfCategory] = useState<CtfCategory | null>("misc");
   const [solvers, setSolvers] = useState<SolverRow[]>([
     { key: crypto.randomUUID(), modelIndex: 0, label: "Solver 1" },
     { key: crypto.randomUUID(), modelIndex: 1, label: "Solver 2" },
@@ -95,7 +106,7 @@ export function SwarmCreationDialog({ open, onOpenChange, projectId }: SwarmCrea
       const swarmId = SwarmId.make(crypto.randomUUID());
       const memberConfigs: SwarmMemberConfig[] = solvers.map((solver) => ({
         modelSelection:
-          DEFAULT_MODELS[solver.modelIndex]?.selection ?? DEFAULT_MODELS[0]!.selection,
+          SWARM_MODEL_OPTIONS[solver.modelIndex]?.selection ?? SWARM_MODEL_OPTIONS[0]!.selection,
         label: solver.label || undefined,
       }));
 
@@ -106,7 +117,7 @@ export function SwarmCreationDialog({ open, onOpenChange, projectId }: SwarmCrea
         projectId: projectId as any,
         title: title.trim(),
         challengePrompt: challengePrompt.trim(),
-        ...(ctfCategory ? { ctfCategory: ctfCategory as CtfCategory } : {}),
+        ...(ctfCategory ? { ctfCategory } : {}),
         memberConfigs,
         createdAt: new Date().toISOString(),
       });
@@ -166,18 +177,7 @@ export function SwarmCreationDialog({ open, onOpenChange, projectId }: SwarmCrea
             {/* CTF Category */}
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground">CTF Category</label>
-              <select
-                className="rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-                value={ctfCategory}
-                onChange={(e) => setCtfCategory(e.target.value as CtfCategory | "")}
-              >
-                <option value="">None</option>
-                {CTF_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+              <CtfCategoryPicker value={ctfCategory} onChange={setCtfCategory} />
             </div>
 
             {/* Solver Rows */}
@@ -214,7 +214,7 @@ export function SwarmCreationDialog({ open, onOpenChange, projectId }: SwarmCrea
                         })
                       }
                     >
-                      {DEFAULT_MODELS.map((m, i) => (
+                      {SWARM_MODEL_OPTIONS.map((m, i) => (
                         <option key={i} value={i}>
                           {m.label}
                         </option>

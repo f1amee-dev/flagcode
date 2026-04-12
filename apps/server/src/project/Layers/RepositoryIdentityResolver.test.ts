@@ -34,16 +34,16 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
       });
 
       yield* git(cwd, ["init"]);
-      yield* git(cwd, ["remote", "add", "origin", "git@github.com:T3Tools/flagcode.git"]);
+      yield* git(cwd, ["remote", "add", "origin", "git@github.com:FlagTeam/flagcode.git"]);
 
       const resolver = yield* RepositoryIdentityResolver;
       const identity = yield* resolver.resolve(cwd);
 
       expect(identity).not.toBeNull();
-      expect(identity?.canonicalKey).toBe("github.com/t3tools/flagcode");
-      expect(identity?.displayName).toBe("t3tools/flagcode");
+      expect(identity?.canonicalKey).toBe("github.com/flagteam/flagcode");
+      expect(identity?.displayName).toBe("flagteam/flagcode");
       expect(identity?.provider).toBe("github");
-      expect(identity?.owner).toBe("t3tools");
+      expect(identity?.owner).toBe("flagteam");
       expect(identity?.name).toBe("flagcode");
     }).pipe(Effect.provide(RepositoryIdentityResolverLive)),
   );
@@ -78,15 +78,15 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
 
       yield* git(cwd, ["init"]);
       yield* git(cwd, ["remote", "add", "origin", "git@github.com:julius/flagcode.git"]);
-      yield* git(cwd, ["remote", "add", "upstream", "git@github.com:T3Tools/flagcode.git"]);
+      yield* git(cwd, ["remote", "add", "upstream", "git@github.com:FlagTeam/flagcode.git"]);
 
       const resolver = yield* RepositoryIdentityResolver;
       const identity = yield* resolver.resolve(cwd);
 
       expect(identity).not.toBeNull();
       expect(identity?.locator.remoteName).toBe("upstream");
-      expect(identity?.canonicalKey).toBe("github.com/t3tools/flagcode");
-      expect(identity?.displayName).toBe("t3tools/flagcode");
+      expect(identity?.canonicalKey).toBe("github.com/flagteam/flagcode");
+      expect(identity?.displayName).toBe("flagteam/flagcode");
     }).pipe(Effect.provide(RepositoryIdentityResolverLive)),
   );
 
@@ -98,15 +98,15 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
       });
 
       yield* git(cwd, ["init"]);
-      yield* git(cwd, ["remote", "add", "origin", "git@gitlab.com:T3Tools/platform/flagcode.git"]);
+      yield* git(cwd, ["remote", "add", "origin", "git@gitlab.com:FlagTeam/platform/flagcode.git"]);
 
       const resolver = yield* RepositoryIdentityResolver;
       const identity = yield* resolver.resolve(cwd);
 
       expect(identity).not.toBeNull();
-      expect(identity?.canonicalKey).toBe("gitlab.com/t3tools/platform/flagcode");
-      expect(identity?.displayName).toBe("t3tools/platform/flagcode");
-      expect(identity?.owner).toBe("t3tools");
+      expect(identity?.canonicalKey).toBe("gitlab.com/flagteam/platform/flagcode");
+      expect(identity?.displayName).toBe("flagteam/platform/flagcode");
+      expect(identity?.owner).toBe("flagteam");
       expect(identity?.name).toBe("flagcode");
     }).pipe(Effect.provide(RepositoryIdentityResolverLive)),
   );
@@ -126,7 +126,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
         const initialIdentity = yield* resolver.resolve(cwd);
         expect(initialIdentity).toBeNull();
 
-        yield* git(cwd, ["remote", "add", "origin", "git@github.com:T3Tools/flagcode.git"]);
+        yield* git(cwd, ["remote", "add", "origin", "git@github.com:FlagTeam/flagcode.git"]);
 
         const cachedIdentity = yield* resolver.resolve(cwd);
         expect(cachedIdentity).toBeNull();
@@ -135,7 +135,7 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
 
         const refreshedIdentity = yield* resolver.resolve(cwd);
         expect(refreshedIdentity).not.toBeNull();
-        expect(refreshedIdentity?.canonicalKey).toBe("github.com/t3tools/flagcode");
+        expect(refreshedIdentity?.canonicalKey).toBe("github.com/flagteam/flagcode");
         expect(refreshedIdentity?.name).toBe("flagcode");
       }).pipe(
         Effect.provide(
@@ -158,25 +158,25 @@ it.layer(NodeServices.layer)("RepositoryIdentityResolverLive", (it) => {
       });
 
       yield* git(cwd, ["init"]);
-      yield* git(cwd, ["remote", "add", "origin", "git@github.com:T3Tools/flagcode.git"]);
+      yield* git(cwd, ["remote", "add", "origin", "git@github.com:FlagTeam/flagcode.git"]);
 
       const resolver = yield* RepositoryIdentityResolver;
       const initialIdentity = yield* resolver.resolve(cwd);
       expect(initialIdentity).not.toBeNull();
-      expect(initialIdentity?.canonicalKey).toBe("github.com/t3tools/flagcode");
+      expect(initialIdentity?.canonicalKey).toBe("github.com/flagteam/flagcode");
 
-      yield* git(cwd, ["remote", "set-url", "origin", "git@github.com:T3Tools/flagcode-next.git"]);
+      yield* git(cwd, ["remote", "set-url", "origin", "git@github.com:FlagTeam/flagcode-next.git"]);
 
       const cachedIdentity = yield* resolver.resolve(cwd);
       expect(cachedIdentity).not.toBeNull();
-      expect(cachedIdentity?.canonicalKey).toBe("github.com/t3tools/flagcode");
+      expect(cachedIdentity?.canonicalKey).toBe("github.com/flagteam/flagcode");
 
       yield* TestClock.adjust(Duration.millis(180));
 
       const refreshedIdentity = yield* resolver.resolve(cwd);
       expect(refreshedIdentity).not.toBeNull();
-      expect(refreshedIdentity?.canonicalKey).toBe("github.com/t3tools/flagcode-next");
-      expect(refreshedIdentity?.displayName).toBe("t3tools/flagcode-next");
+      expect(refreshedIdentity?.canonicalKey).toBe("github.com/flagteam/flagcode-next");
+      expect(refreshedIdentity?.displayName).toBe("flagteam/flagcode-next");
       expect(refreshedIdentity?.name).toBe("flagcode-next");
     }).pipe(
       Effect.provide(

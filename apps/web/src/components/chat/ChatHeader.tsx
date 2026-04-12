@@ -8,6 +8,7 @@ import {
 import { scopeThreadRef } from "@flagcode/client-runtime";
 import { memo } from "react";
 import GitActionsControl from "../GitActionsControl";
+import WriteupButton from "../WriteupButton";
 import { type DraftId } from "~/composerDraftStore";
 import { DiffIcon, TerminalSquareIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
@@ -106,6 +107,13 @@ export const ChatHeader = memo(function ChatHeader({
             keybindings={keybindings}
             availableEditors={availableEditors}
             openInCwd={openInCwd}
+          />
+        )}
+        {activeProjectName && (
+          <WriteupButton
+            cwd={gitCwd ?? openInCwd ?? "."}
+            activeThreadId={activeThreadId}
+            environmentId={activeThreadEnvironmentId}
           />
         )}
         {activeProjectName && (
