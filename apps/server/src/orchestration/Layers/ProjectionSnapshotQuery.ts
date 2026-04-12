@@ -691,6 +691,8 @@ const makeProjectionSnapshotQuery = Effect.gen(function* () {
                 branch: row.branch,
                 worktreePath: row.worktreePath,
                 ctfCategory: row.ctfCategory ?? null,
+                swarmId: null,
+                swarmLabel: null,
                 latestTurn: latestTurnByThread.get(row.threadId) ?? null,
                 createdAt: row.createdAt,
                 updatedAt: row.updatedAt,
@@ -707,6 +709,7 @@ const makeProjectionSnapshotQuery = Effect.gen(function* () {
                 snapshotSequence: computeSnapshotSequence(stateRows),
                 projects,
                 threads,
+                swarms: [],
                 updatedAt: updatedAt ?? new Date(0).toISOString(),
               };
 

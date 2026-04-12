@@ -65,6 +65,8 @@ const readModel: OrchestrationReadModel = {
       branch: null,
       worktreePath: null,
       ctfCategory: null,
+      swarmId: null,
+      swarmLabel: null,
       createdAt: now,
       updatedAt: now,
       archivedAt: null,
@@ -89,6 +91,8 @@ const readModel: OrchestrationReadModel = {
       branch: null,
       worktreePath: null,
       ctfCategory: null,
+      swarmId: null,
+      swarmLabel: null,
       createdAt: now,
       updatedAt: now,
       archivedAt: null,
@@ -101,6 +105,7 @@ const readModel: OrchestrationReadModel = {
       deletedAt: null,
     },
   ],
+  swarms: [],
 };
 
 const messageSendCommand: OrchestrationCommand = {

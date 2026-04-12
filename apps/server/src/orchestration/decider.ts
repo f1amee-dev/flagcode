@@ -13,6 +13,8 @@ import {
   requireThreadArchived,
   requireThreadAbsent,
   requireThreadNotArchived,
+  requireSwarm,
+  requireSwarmAbsent,
 } from "./commandInvariants.ts";
 
 const nowIso = () => new Date().toISOString();
@@ -675,6 +677,122 @@ export const decideOrchestrationCommand = Effect.fn("decideOrchestrationCommand"
         payload: {
           threadId: command.threadId,
           activity: command.activity,
+        },
+      };
+    }
+
+    case "swarm.create": {
+      yield* requireProject({
+        readModel,
+        command,
+        projectId: command.projectId,
+      });
+      yield* requireSwarmAbsent({
+        readModel,
+        command,
+        swarmId: command.swarmId,
+      });
+      return {
+        ...withEventBase({
+          aggregateKind: "swarm",
+          aggregateId: command.swarmId,
+          occurredAt: command.createdAt,
+          commandId: command.commandId,
+        }),
+        type: "swarm.created",
+        payload: {
+          swarmId: command.swarmId,
+          projectId: command.projectId,
+          title: command.title,
+          challengePrompt: command.challengePrompt,
+          ctfCategory: command.ctfCategory ?? null,
+          memberConfigs: command.memberConfigs,
+          createdAt: command.createdAt,
+          updatedAt: command.createdAt,
+        },
+      };
+    }
+
+    case "swarm.start": {
+      const swarm = yield* requireSwarm({
+        readModel,
+        command,
+        swarmId: command.swarmId,
+      });
+      if (swarm.status !== "pending") {
+        return yield* new OrchestrationCommandInvariantError({
+          commandType: command.type,
+          detail: `Swarm '${command.swarmId}' is in status '${swarm.status}' and cannot be started.`,
+        });
+      }
+      return {
+        ...withEventBase({
+          aggregateKind: "swarm",
+          aggregateId: command.swarmId,
+          occurredAt: command.createdAt,
+          commandId: command.commandId,
+        }),
+        type: "swarm.started",
+        payload: {
+          swarmId: command.swarmId,
+          threadIds: swarm.threadIds,
+          createdAt: command.createdAt,
+        },
+      };
+    }
+
+    case "swarm.flag-found": {
+      const swarm = yield* requireSwarm({
+        readModel,
+        command,
+        swarmId: command.swarmId,
+      });
+      if (swarm.status !== "running") {
+        return yield* new OrchestrationCommandInvariantError({
+          commandType: command.type,
+          detail: `Swarm '${command.swarmId}' is in status '${swarm.status}' and cannot accept flag-found.`,
+        });
+      }
+      return {
+        ...withEventBase({
+          aggregateKind: "swarm",
+          aggregateId: command.swarmId,
+          occurredAt: command.createdAt,
+          commandId: command.commandId,
+        }),
+        type: "swarm.flag-found",
+        payload: {
+          swarmId: command.swarmId,
+          threadId: command.threadId,
+          flagValue: command.flagValue,
+          createdAt: command.createdAt,
+        },
+      };
+    }
+
+    case "swarm.stop": {
+      const swarm = yield* requireSwarm({
+        readModel,
+        command,
+        swarmId: command.swarmId,
+      });
+      if (swarm.status !== "running" && swarm.status !== "pending") {
+        return yield* new OrchestrationCommandInvariantError({
+          commandType: command.type,
+          detail: `Swarm '${command.swarmId}' is in status '${swarm.status}' and cannot be stopped.`,
+        });
+      }
+      return {
+        ...withEventBase({
+          aggregateKind: "swarm",
+          aggregateId: command.swarmId,
+          occurredAt: command.createdAt,
+          commandId: command.commandId,
+        }),
+        type: "swarm.stopped",
+        payload: {
+          swarmId: command.swarmId,
+          createdAt: command.createdAt,
         },
       };
     }

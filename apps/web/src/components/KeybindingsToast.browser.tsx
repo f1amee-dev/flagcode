@@ -137,6 +137,8 @@ function createMinimalSnapshot(): OrchestrationReadModel {
         worktreePath: null,
         latestTurn: null,
         ctfCategory: null,
+        swarmId: null,
+        swarmLabel: null,
         createdAt: NOW_ISO,
         updatedAt: NOW_ISO,
         archivedAt: null,
@@ -166,6 +168,7 @@ function createMinimalSnapshot(): OrchestrationReadModel {
         },
       },
     ],
+    swarms: [],
     updatedAt: NOW_ISO,
   };
 }

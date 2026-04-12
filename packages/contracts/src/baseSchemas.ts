@@ -47,3 +47,7 @@ export const ApprovalRequestId = makeEntityId("ApprovalRequestId");
 export type ApprovalRequestId = typeof ApprovalRequestId.Type;
 export const CheckpointRef = makeEntityId("CheckpointRef");
 export type CheckpointRef = typeof CheckpointRef.Type;
+export const SwarmId = makeEntityId("SwarmId");
+export type SwarmId = typeof SwarmId.Type;
+export const FindingId = makeEntityId("FindingId");
+export type FindingId = typeof FindingId.Type;

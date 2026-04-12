@@ -14,6 +14,7 @@ import type {
   ProviderKind,
   ScopedProjectRef,
   ScopedThreadRef,
+  SwarmId,
   ThreadId,
   TurnId,
 } from "@flagcode/contracts";
@@ -30,6 +31,7 @@ import {
   type Project,
   type ProposedPlan,
   type SidebarThreadSummary,
+  type Swarm,
   type Thread,
   type ThreadSession,
   type ThreadShell,
@@ -57,6 +59,9 @@ export interface EnvironmentState {
   turnDiffIdsByThreadId: Record<ThreadId, TurnId[]>;
   turnDiffSummaryByThreadId: Record<ThreadId, Record<TurnId, TurnDiffSummary>>;
   sidebarThreadSummaryById: Record<ThreadId, SidebarThreadSummary>;
+  swarmIds: SwarmId[];
+  swarmById: Record<SwarmId, Swarm>;
+  swarmIdsByProjectId: Record<ProjectId, SwarmId[]>;
   bootstrapComplete: boolean;
 }
 
@@ -82,6 +87,9 @@ const initialEnvironmentState: EnvironmentState = {
   turnDiffIdsByThreadId: {},
   turnDiffSummaryByThreadId: {},
   sidebarThreadSummaryById: {},
+  swarmIds: [],
+  swarmById: {},
+  swarmIdsByProjectId: {},
   bootstrapComplete: false,
 };
 
@@ -954,12 +962,45 @@ function syncEnvironmentReadModel(
   const threads = readModel.threads
     .filter((thread) => thread.deletedAt === null)
     .map((thread) => mapThread(thread, environmentId));
+  const swarms = (readModel.swarms ?? []).map(
+    (swarm): Swarm => ({
+      id: swarm.id as SwarmId,
+      projectId: swarm.projectId as ProjectId,
+      title: swarm.title,
+      challengePrompt: swarm.challengePrompt,
+      ctfCategory: swarm.ctfCategory as Swarm["ctfCategory"],
+      threadIds: swarm.threadIds as ThreadId[],
+      memberConfigs: swarm.memberConfigs as Swarm["memberConfigs"],
+      status: swarm.status as Swarm["status"],
+      winnerThreadId: (swarm.winnerThreadId as ThreadId) ?? null,
+      flagValue: swarm.flagValue ?? null,
+      createdAt: swarm.createdAt,
+      updatedAt: swarm.updatedAt,
+    }),
+  );
   return {
     ...state,
     ...buildProjectState(projects),
     ...buildThreadState(threads),
+    ...buildSwarmState(swarms),
     bootstrapComplete: true,
   };
+}
+
+function buildSwarmState(
+  swarms: Swarm[],
+): Pick<EnvironmentState, "swarmIds" | "swarmById" | "swarmIdsByProjectId"> {
+  const swarmIds: SwarmId[] = [];
+  const swarmById: Record<SwarmId, Swarm> = {};
+  const swarmIdsByProjectId: Record<ProjectId, SwarmId[]> = {};
+  for (const swarm of swarms) {
+    swarmIds.push(swarm.id);
+    swarmById[swarm.id] = swarm;
+    const projectSwarms = swarmIdsByProjectId[swarm.projectId] ?? [];
+    projectSwarms.push(swarm.id);
+    swarmIdsByProjectId[swarm.projectId] = projectSwarms;
+  }
+  return { swarmIds, swarmById, swarmIdsByProjectId };
 }
 
 export function syncServerReadModel(
@@ -1093,6 +1134,8 @@ function applyEnvironmentOrchestrationEvent(
           branch: event.payload.branch,
           worktreePath: event.payload.worktreePath,
           ctfCategory: event.payload.ctfCategory,
+          swarmId: (event.payload as any).swarmId ?? null,
+          swarmLabel: (event.payload as any).swarmLabel ?? null,
           latestTurn: null,
           createdAt: event.payload.createdAt,
           updatedAt: event.payload.updatedAt,
@@ -1464,6 +1507,135 @@ function applyEnvironmentOrchestrationEvent(
     case "thread.approval-response-requested":
     case "thread.user-input-response-requested":
       return state;
+
+    case "swarm.created": {
+      const payload = event.payload as unknown as {
+        swarmId: string;
+        projectId: string;
+        title: string;
+        challengePrompt: string;
+        ctfCategory: string | null;
+        memberConfigs: Swarm["memberConfigs"];
+        createdAt: string;
+        updatedAt: string;
+      };
+      const swarm: Swarm = {
+        id: payload.swarmId as SwarmId,
+        projectId: payload.projectId as ProjectId,
+        title: payload.title,
+        challengePrompt: payload.challengePrompt,
+        ctfCategory: payload.ctfCategory as Swarm["ctfCategory"],
+        threadIds: [],
+        memberConfigs: payload.memberConfigs,
+        status: "pending",
+        winnerThreadId: null,
+        flagValue: null,
+        createdAt: payload.createdAt,
+        updatedAt: payload.updatedAt,
+      };
+      const swarmIds = state.swarmIds.includes(swarm.id)
+        ? state.swarmIds
+        : [...state.swarmIds, swarm.id];
+      const projectSwarms = state.swarmIdsByProjectId[swarm.projectId] ?? [];
+      return {
+        ...state,
+        swarmIds,
+        swarmById: { ...state.swarmById, [swarm.id]: swarm },
+        swarmIdsByProjectId: {
+          ...state.swarmIdsByProjectId,
+          [swarm.projectId]: projectSwarms.includes(swarm.id)
+            ? projectSwarms
+            : [...projectSwarms, swarm.id],
+        },
+      };
+    }
+
+    case "swarm.started": {
+      const payload = event.payload as unknown as {
+        swarmId: string;
+        threadIds: string[];
+        createdAt: string;
+      };
+      const existing = state.swarmById[payload.swarmId as SwarmId];
+      if (!existing) return state;
+      return {
+        ...state,
+        swarmById: {
+          ...state.swarmById,
+          [payload.swarmId]: {
+            ...existing,
+            status: "running" as const,
+            threadIds: payload.threadIds as ThreadId[],
+            updatedAt: event.occurredAt,
+          },
+        },
+      };
+    }
+
+    case "swarm.flag-found": {
+      const payload = event.payload as unknown as {
+        swarmId: string;
+        threadId: string;
+        flagValue: string;
+        createdAt: string;
+      };
+      const existing = state.swarmById[payload.swarmId as SwarmId];
+      if (!existing) return state;
+      return {
+        ...state,
+        swarmById: {
+          ...state.swarmById,
+          [payload.swarmId]: {
+            ...existing,
+            status: "solved" as const,
+            winnerThreadId: payload.threadId as ThreadId,
+            flagValue: payload.flagValue,
+            updatedAt: event.occurredAt,
+          },
+        },
+      };
+    }
+
+    case "swarm.stopped": {
+      const payload = event.payload as unknown as {
+        swarmId: string;
+        createdAt: string;
+      };
+      const existing = state.swarmById[payload.swarmId as SwarmId];
+      if (!existing) return state;
+      return {
+        ...state,
+        swarmById: {
+          ...state.swarmById,
+          [payload.swarmId]: {
+            ...existing,
+            status: "stopped" as const,
+            updatedAt: event.occurredAt,
+          },
+        },
+      };
+    }
+
+    case "swarm.status-changed": {
+      const payload = event.payload as unknown as {
+        swarmId: string;
+        status: Swarm["status"];
+        updatedAt: string;
+      };
+      const existing = state.swarmById[payload.swarmId as SwarmId];
+      if (!existing) return state;
+      return {
+        ...state,
+        swarmById: {
+          ...state.swarmById,
+          [payload.swarmId]: {
+            ...existing,
+            status: payload.status,
+            updatedAt: payload.updatedAt,
+          },
+        },
+      };
+    }
   }
 
   return state;
@@ -1618,6 +1790,32 @@ export function selectThreadIdsByProjectRef(
     ? (selectEnvironmentState(state, ref.environmentId).threadIdsByProjectId[ref.projectId] ??
         EMPTY_THREAD_IDS)
     : EMPTY_THREAD_IDS;
+}
+
+export function selectSwarmsForEnvironment(state: AppState, environmentId: EnvironmentId): Swarm[] {
+  const envState = selectEnvironmentState(state, environmentId);
+  return envState.swarmIds.map((id) => envState.swarmById[id]).filter(Boolean) as Swarm[];
+}
+
+export function selectSwarmsAcrossEnvironments(state: AppState): Swarm[] {
+  const swarms: Swarm[] = [];
+  for (const envState of Object.values(state.environmentStateById)) {
+    for (const id of envState.swarmIds) {
+      const swarm = envState.swarmById[id];
+      if (swarm) swarms.push(swarm);
+    }
+  }
+  return swarms;
+}
+
+export function selectSwarmsByProjectId(
+  state: AppState,
+  environmentId: EnvironmentId,
+  projectId: ProjectId,
+): Swarm[] {
+  const envState = selectEnvironmentState(state, environmentId);
+  const swarmIds = envState.swarmIdsByProjectId[projectId] ?? [];
+  return swarmIds.map((id) => envState.swarmById[id]).filter(Boolean) as Swarm[];
 }
 
 export function setError(state: AppState, threadId: ThreadId, error: string | null): AppState {

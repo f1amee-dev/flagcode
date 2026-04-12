@@ -6,11 +6,13 @@ import {
   CheckpointRef,
   CommandId,
   EventId,
+  FindingId,
   IsoDateTime,
   MessageId,
   NonNegativeInt,
   ProjectId,
   ProviderItemId,
+  SwarmId,
   ThreadId,
   TrimmedNonEmptyString,
   TurnId,
@@ -68,6 +70,16 @@ export type ClaudeModelSelection = typeof ClaudeModelSelection.Type;
 
 export const ModelSelection = Schema.Union([CodexModelSelection, ClaudeModelSelection]);
 export type ModelSelection = typeof ModelSelection.Type;
+
+export const SwarmStatus = Schema.Literals(["pending", "running", "solved", "stopped", "failed"]);
+export type SwarmStatus = typeof SwarmStatus.Type;
+
+export const SwarmMemberConfig = Schema.Struct({
+  modelSelection: ModelSelection,
+  label: Schema.optional(TrimmedNonEmptyString),
+  systemPromptOverride: Schema.optional(Schema.String),
+});
+export type SwarmMemberConfig = typeof SwarmMemberConfig.Type;
 
 export const RuntimeMode = Schema.Literals([
   "approval-required",
@@ -296,6 +308,10 @@ export const OrchestrationThread = Schema.Struct({
   branch: Schema.NullOr(TrimmedNonEmptyString),
   worktreePath: Schema.NullOr(TrimmedNonEmptyString),
   ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
+  swarmId: Schema.NullOr(SwarmId).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
+  swarmLabel: Schema.NullOr(TrimmedNonEmptyString).pipe(
+    Schema.withDecodingDefault(Effect.succeed(null)),
+  ),
   latestTurn: Schema.NullOr(OrchestrationLatestTurn),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
@@ -311,10 +327,27 @@ export const OrchestrationThread = Schema.Struct({
 });
 export type OrchestrationThread = typeof OrchestrationThread.Type;
 
+export const OrchestrationSwarm = Schema.Struct({
+  id: SwarmId,
+  projectId: ProjectId,
+  title: TrimmedNonEmptyString,
+  challengePrompt: Schema.String,
+  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
+  threadIds: Schema.Array(ThreadId),
+  memberConfigs: Schema.Array(SwarmMemberConfig),
+  status: SwarmStatus,
+  winnerThreadId: Schema.NullOr(ThreadId),
+  flagValue: Schema.NullOr(Schema.String),
+  createdAt: IsoDateTime,
+  updatedAt: IsoDateTime,
+});
+export type OrchestrationSwarm = typeof OrchestrationSwarm.Type;
+
 export const OrchestrationReadModel = Schema.Struct({
   snapshotSequence: NonNegativeInt,
   projects: Schema.Array(OrchestrationProject),
   threads: Schema.Array(OrchestrationThread),
+  swarms: Schema.Array(OrchestrationSwarm).pipe(Schema.withDecodingDefault(Effect.succeed([]))),
   updatedAt: IsoDateTime,
 });
 export type OrchestrationReadModel = typeof OrchestrationReadModel.Type;
@@ -514,6 +547,41 @@ const ThreadSessionStopCommand = Schema.Struct({
   createdAt: IsoDateTime,
 });
 
+const SwarmCreateCommand = Schema.Struct({
+  type: Schema.Literal("swarm.create"),
+  commandId: CommandId,
+  swarmId: SwarmId,
+  projectId: ProjectId,
+  title: TrimmedNonEmptyString,
+  challengePrompt: Schema.String,
+  ctfCategory: Schema.optionalKey(CtfCategory),
+  memberConfigs: Schema.Array(SwarmMemberConfig),
+  createdAt: IsoDateTime,
+});
+
+const SwarmStartCommand = Schema.Struct({
+  type: Schema.Literal("swarm.start"),
+  commandId: CommandId,
+  swarmId: SwarmId,
+  createdAt: IsoDateTime,
+});
+
+const SwarmFlagFoundCommand = Schema.Struct({
+  type: Schema.Literal("swarm.flag-found"),
+  commandId: CommandId,
+  swarmId: SwarmId,
+  threadId: ThreadId,
+  flagValue: Schema.String,
+  createdAt: IsoDateTime,
+});
+
+const SwarmStopCommand = Schema.Struct({
+  type: Schema.Literal("swarm.stop"),
+  commandId: CommandId,
+  swarmId: SwarmId,
+  createdAt: IsoDateTime,
+});
+
 const DispatchableClientOrchestrationCommand = Schema.Union([
   ProjectCreateCommand,
   ProjectMetaUpdateCommand,
@@ -531,6 +599,10 @@ const DispatchableClientOrchestrationCommand = Schema.Union([
   ThreadUserInputRespondCommand,
   ThreadCheckpointRevertCommand,
   ThreadSessionStopCommand,
+  SwarmCreateCommand,
+  SwarmStartCommand,
+  SwarmFlagFoundCommand,
+  SwarmStopCommand,
 ]);
 export type DispatchableClientOrchestrationCommand =
   typeof DispatchableClientOrchestrationCommand.Type;
@@ -552,6 +624,10 @@ export const ClientOrchestrationCommand = Schema.Union([
   ThreadUserInputRespondCommand,
   ThreadCheckpointRevertCommand,
   ThreadSessionStopCommand,
+  SwarmCreateCommand,
+  SwarmStartCommand,
+  SwarmFlagFoundCommand,
+  SwarmStopCommand,
 ]);
 export type ClientOrchestrationCommand = typeof ClientOrchestrationCommand.Type;
 
@@ -660,10 +736,15 @@ export const OrchestrationEventType = Schema.Literals([
   "thread.proposed-plan-upserted",
   "thread.turn-diff-completed",
   "thread.activity-appended",
+  "swarm.created",
+  "swarm.started",
+  "swarm.flag-found",
+  "swarm.stopped",
+  "swarm.status-changed",
 ]);
 export type OrchestrationEventType = typeof OrchestrationEventType.Type;
 
-export const OrchestrationAggregateKind = Schema.Literals(["project", "thread"]);
+export const OrchestrationAggregateKind = Schema.Literals(["project", "thread", "swarm"]);
 export type OrchestrationAggregateKind = typeof OrchestrationAggregateKind.Type;
 export const OrchestrationActorKind = Schema.Literals(["client", "server", "provider"]);
 
@@ -836,6 +917,41 @@ export const ThreadActivityAppendedPayload = Schema.Struct({
   activity: OrchestrationThreadActivity,
 });
 
+export const SwarmCreatedPayload = Schema.Struct({
+  swarmId: SwarmId,
+  projectId: ProjectId,
+  title: TrimmedNonEmptyString,
+  challengePrompt: Schema.String,
+  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(Effect.succeed(null))),
+  memberConfigs: Schema.Array(SwarmMemberConfig),
+  createdAt: IsoDateTime,
+  updatedAt: IsoDateTime,
+});
+
+export const SwarmStartedPayload = Schema.Struct({
+  swarmId: SwarmId,
+  threadIds: Schema.Array(ThreadId),
+  createdAt: IsoDateTime,
+});
+
+export const SwarmFlagFoundPayload = Schema.Struct({
+  swarmId: SwarmId,
+  threadId: ThreadId,
+  flagValue: Schema.String,
+  createdAt: IsoDateTime,
+});
+
+export const SwarmStoppedPayload = Schema.Struct({
+  swarmId: SwarmId,
+  createdAt: IsoDateTime,
+});
+
+export const SwarmStatusChangedPayload = Schema.Struct({
+  swarmId: SwarmId,
+  status: SwarmStatus,
+  updatedAt: IsoDateTime,
+});
+
 export const OrchestrationEventMetadata = Schema.Struct({
   providerTurnId: Schema.optional(TrimmedNonEmptyString),
   providerItemId: Schema.optional(ProviderItemId),
@@ -849,7 +965,7 @@ const EventBaseFields = {
   sequence: NonNegativeInt,
   eventId: EventId,
   aggregateKind: OrchestrationAggregateKind,
-  aggregateId: Schema.Union([ProjectId, ThreadId]),
+  aggregateId: Schema.Union([ProjectId, ThreadId, SwarmId]),
   occurredAt: IsoDateTime,
   commandId: Schema.NullOr(CommandId),
   causationEventId: Schema.NullOr(EventId),
@@ -967,6 +1083,31 @@ export const OrchestrationEvent = Schema.Union([
     ...EventBaseFields,
     type: Schema.Literal("thread.activity-appended"),
     payload: ThreadActivityAppendedPayload,
+  }),
+  Schema.Struct({
+    ...EventBaseFields,
+    type: Schema.Literal("swarm.created"),
+    payload: SwarmCreatedPayload,
+  }),
+  Schema.Struct({
+    ...EventBaseFields,
+    type: Schema.Literal("swarm.started"),
+    payload: SwarmStartedPayload,
+  }),
+  Schema.Struct({
+    ...EventBaseFields,
+    type: Schema.Literal("swarm.flag-found"),
+    payload: SwarmFlagFoundPayload,
+  }),
+  Schema.Struct({
+    ...EventBaseFields,
+    type: Schema.Literal("swarm.stopped"),
+    payload: SwarmStoppedPayload,
+  }),
+  Schema.Struct({
+    ...EventBaseFields,
+    type: Schema.Literal("swarm.status-changed"),
+    payload: SwarmStatusChangedPayload,
   }),
 ]);
 export type OrchestrationEvent = typeof OrchestrationEvent.Type;
@@ -1123,6 +1264,20 @@ export class OrchestrationGetFullThreadDiffError extends Schema.TaggedErrorClass
 
 export class OrchestrationReplayEventsError extends Schema.TaggedErrorClass<OrchestrationReplayEventsError>()(
   "OrchestrationReplayEventsError",
+  {
+    message: TrimmedNonEmptyString,
+    cause: Schema.optional(Schema.Defect),
+  },
+) {}
+
+export const SwarmGetFindingsInput = Schema.Struct({
+  swarmId: SwarmId,
+  afterSequence: Schema.optional(NonNegativeInt),
+});
+export type SwarmGetFindingsInput = typeof SwarmGetFindingsInput.Type;
+
+export class SwarmGetFindingsError extends Schema.TaggedErrorClass<SwarmGetFindingsError>()(
+  "SwarmGetFindingsError",
   {
     message: TrimmedNonEmptyString,
     cause: Schema.optional(Schema.Defect),

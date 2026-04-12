@@ -16,11 +16,13 @@ import {
   ProjectSearchEntriesError,
   ProjectWriteFileError,
   OrchestrationReplayEventsError,
+  SwarmGetFindingsError,
   TextGenerationError,
   ThreadId,
   type TerminalEvent,
   WS_METHODS,
   WsRpcGroup,
+  type SwarmId,
 } from "@flagcode/contracts";
 import { clamp } from "effect/Number";
 import { HttpRouter, HttpServerRequest } from "effect/unstable/http";
@@ -48,6 +50,7 @@ import { ServerRuntimeStartup } from "./serverRuntimeStartup";
 import { ServerSettingsService } from "./serverSettings";
 import { TerminalManager } from "./terminal/Services/Manager";
 import { WorkspaceEntries } from "./workspace/Services/WorkspaceEntries";
+import { SwarmMessageBus } from "./swarm/Services/SwarmMessageBus";
 import { WorkspaceFileSystem } from "./workspace/Services/WorkspaceFileSystem";
 import { WorkspacePathOutsideRootError } from "./workspace/Services/WorkspacePaths";
 import { ProjectSetupScriptRunner } from "./project/Services/ProjectSetupScriptRunner";
@@ -937,6 +940,34 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
               return { relativePath, writeup: result.writeup };
             }),
             { "rpc.aggregate": "writeup" },
+          ),
+
+        [WS_METHODS.swarmGetFindings]: (input) =>
+          observeRpcEffect(
+            WS_METHODS.swarmGetFindings,
+            Effect.gen(function* () {
+              const messageBus = yield* SwarmMessageBus;
+              return yield* messageBus.readFindings(input.swarmId as SwarmId, input.afterSequence);
+            }).pipe(
+              Effect.mapError(
+                (cause) =>
+                  new SwarmGetFindingsError({
+                    message: "Failed to fetch swarm findings",
+                    cause,
+                  }),
+              ),
+            ),
+            { "rpc.aggregate": "swarm" },
+          ),
+
+        [WS_METHODS.subscribeSwarmFindings]: (input) =>
+          observeRpcStreamEffect(
+            WS_METHODS.subscribeSwarmFindings,
+            Effect.gen(function* () {
+              const messageBus = yield* SwarmMessageBus;
+              return messageBus.streamFindings(input.swarmId as SwarmId);
+            }),
+            { "rpc.aggregate": "swarm" },
           ),
       });
     }),

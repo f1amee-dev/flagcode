@@ -278,6 +278,8 @@ projectionSnapshotLayer("ProjectionSnapshotQuery", (it) => {
           branch: null,
           worktreePath: null,
           ctfCategory: null,
+          swarmId: null,
+          swarmLabel: null,
           latestTurn: {
             turnId: asTurnId("turn-1"),
             state: "completed",

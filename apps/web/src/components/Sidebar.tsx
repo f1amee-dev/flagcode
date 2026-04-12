@@ -11,6 +11,7 @@ import {
   SquarePenIcon,
   TerminalIcon,
   TriangleAlertIcon,
+  ZapIcon,
 } from "lucide-react";
 import { ProjectFavicon } from "./ProjectFavicon";
 import { autoAnimate } from "@formkit/auto-animate";
@@ -64,9 +65,11 @@ import {
   selectSidebarThreadsForProjectRef,
   selectSidebarThreadsForProjectRefs,
   selectSidebarThreadsAcrossEnvironments,
+  selectSwarmsByProjectId,
   selectThreadByRef,
   useStore,
 } from "../store";
+import { SwarmCreationDialog } from "./SwarmCreationDialog";
 import { selectThreadTerminalState, useTerminalStateStore } from "../terminalStateStore";
 import { useUiStateStore } from "../uiStateStore";
 import {
@@ -1803,7 +1806,97 @@ const SidebarProjectItem = memo(function SidebarProjectItem(props: SidebarProjec
         expandThreadListForProject={expandThreadListForProject}
         collapseThreadListForProject={collapseThreadListForProject}
       />
+
+      {/* Swarm entries */}
+      {projectExpanded && (
+        <SidebarSwarmSection projectId={project.id} environmentId={project.environmentId} />
+      )}
     </>
+  );
+});
+
+const SWARM_STATUS_COLORS: Record<string, string> = {
+  pending: "bg-muted text-muted-foreground",
+  running: "bg-blue-500/15 text-blue-600",
+  solved: "bg-emerald-500/15 text-emerald-600",
+  stopped: "bg-muted text-muted-foreground",
+  failed: "bg-red-500/15 text-red-600",
+};
+
+const SidebarSwarmSection = memo(function SidebarSwarmSection({
+  projectId,
+  environmentId,
+}: {
+  projectId: string;
+  environmentId: string;
+}) {
+  const swarms = useStore(
+    useShallow((state) => selectSwarmsByProjectId(state, environmentId as any, projectId as any)),
+  );
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  if (swarms.length === 0 && !showCreateDialog) {
+    return (
+      <div className="px-3 pb-1">
+        <button
+          className="flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-[11px] text-muted-foreground/70 hover:bg-secondary hover:text-foreground"
+          onClick={() => setShowCreateDialog(true)}
+        >
+          <ZapIcon className="h-3 w-3" />
+          New Swarm
+        </button>
+        <SwarmCreationDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          projectId={projectId}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="px-3 pb-1">
+      {swarms.length > 0 && (
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center justify-between px-2 py-0.5">
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/60">
+              Swarms
+            </span>
+            <button
+              className="rounded p-0.5 text-muted-foreground/60 hover:bg-secondary hover:text-foreground"
+              onClick={() => setShowCreateDialog(true)}
+            >
+              <PlusIcon className="h-3 w-3" />
+            </button>
+          </div>
+          {swarms.map((swarm) => {
+            const statusColor = SWARM_STATUS_COLORS[swarm.status] ?? SWARM_STATUS_COLORS.pending!;
+            return (
+              <div
+                key={swarm.id}
+                className="flex items-center gap-2 rounded-md px-2 py-1 text-sm hover:bg-secondary cursor-pointer"
+              >
+                <ZapIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 truncate text-xs">{swarm.title}</span>
+                <span
+                  className={`shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-medium ${statusColor}`}
+                >
+                  {swarm.status}
+                </span>
+                <span className="shrink-0 text-[10px] text-muted-foreground">
+                  {swarm.threadIds.length}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <SwarmCreationDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        projectId={projectId}
+      />
+    </div>
   );
 });
 

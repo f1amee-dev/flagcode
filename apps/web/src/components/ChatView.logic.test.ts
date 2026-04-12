@@ -328,6 +328,9 @@ function setStoreThreads(threads: ReadonlyArray<ReturnType<typeof makeThread>>) 
       ]),
     ),
     sidebarThreadSummaryById: {},
+    swarmIds: [],
+    swarmById: {},
+    swarmIdsByProjectId: {},
     bootstrapComplete: true,
   };
   useStore.setState({

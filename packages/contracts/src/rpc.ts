@@ -44,7 +44,10 @@ import {
   OrchestrationReplayEventsError,
   OrchestrationReplayEventsInput,
   OrchestrationRpcSchemas,
+  SwarmGetFindingsInput,
+  SwarmGetFindingsError,
 } from "./orchestration";
+import { SwarmFinding } from "./swarmBus";
 import {
   ProjectSearchEntriesError,
   ProjectSearchEntriesInput,
@@ -125,6 +128,10 @@ export const WS_METHODS = {
 
   // FlagCode-specific methods
   writeupGenerate: "writeup.generate",
+
+  // Swarm methods
+  swarmGetFindings: "swarm.getFindings",
+  subscribeSwarmFindings: "subscribeSwarmFindings",
 } as const;
 
 export const WsServerUpsertKeybindingRpc = Rpc.make(WS_METHODS.serverUpsertKeybinding, {
@@ -353,6 +360,18 @@ export const WsWriteupGenerateRpc = Rpc.make(WS_METHODS.writeupGenerate, {
   error: TextGenerationError,
 });
 
+export const WsSwarmGetFindingsRpc = Rpc.make(WS_METHODS.swarmGetFindings, {
+  payload: SwarmGetFindingsInput,
+  success: Schema.Array(SwarmFinding),
+  error: SwarmGetFindingsError,
+});
+
+export const WsSubscribeSwarmFindingsRpc = Rpc.make(WS_METHODS.subscribeSwarmFindings, {
+  payload: Schema.Struct({ swarmId: Schema.String }),
+  success: SwarmFinding,
+  stream: true,
+});
+
 export const WsRpcGroup = RpcGroup.make(
   WsServerGetConfigRpc,
   WsServerRefreshProvidersRpc,
@@ -391,4 +410,6 @@ export const WsRpcGroup = RpcGroup.make(
   WsOrchestrationGetFullThreadDiffRpc,
   WsOrchestrationReplayEventsRpc,
   WsWriteupGenerateRpc,
+  WsSwarmGetFindingsRpc,
+  WsSubscribeSwarmFindingsRpc,
 );

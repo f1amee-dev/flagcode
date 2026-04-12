@@ -101,6 +101,7 @@ import { WorkspacePathsLive } from "./workspace/Layers/WorkspacePaths.ts";
 import { ServerSecretStoreLive } from "./auth/Layers/ServerSecretStore.ts";
 import { ServerAuthLive } from "./auth/Layers/ServerAuth.ts";
 import { TextGeneration, type TextGenerationShape } from "./git/Services/TextGeneration.ts";
+import { SwarmMessageBus } from "./swarm/Services/SwarmMessageBus.ts";
 
 const defaultProjectId = ProjectId.make("project-default");
 const defaultThreadId = ThreadId.make("thread-default");
@@ -149,6 +150,8 @@ const makeDefaultOrchestrationReadModel = () => {
         branch: null,
         worktreePath: null,
         ctfCategory: null,
+        swarmId: null,
+        swarmLabel: null,
         createdAt: now,
         updatedAt: now,
         archivedAt: null,
@@ -161,6 +164,7 @@ const makeDefaultOrchestrationReadModel = () => {
         deletedAt: null,
       },
     ],
+    swarms: [],
   };
 };
 
@@ -486,6 +490,13 @@ const buildAppUnderTest = (options?: {
         }),
       ),
       Layer.provideMerge(authTestLayer),
+      Layer.provide(
+        Layer.succeed(SwarmMessageBus, {
+          postFinding: () => Effect.void,
+          readFindings: () => Effect.succeed([]),
+          streamFindings: () => Stream.empty,
+        }),
+      ),
       Layer.provide(workspaceAndProjectServicesLayer),
       Layer.provideMerge(FetchHttpClient.layer),
       Layer.provide(layerConfig),
@@ -2731,6 +2742,8 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
             branch: null,
             worktreePath: null,
             ctfCategory: null,
+            swarmId: null,
+            swarmLabel: null,
             createdAt: now,
             updatedAt: now,
             archivedAt: null,
@@ -2743,6 +2756,7 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
             deletedAt: null,
           },
         ],
+        swarms: [],
       };
 
       yield* buildAppUnderTest({

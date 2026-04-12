@@ -16,6 +16,11 @@ import type {
   ProviderInteractionMode,
   RuntimeMode,
   CtfCategory,
+  SwarmId,
+  SwarmStatus,
+  SwarmMemberConfig,
+  SwarmFindingKind,
+  FindingId,
 } from "@flagcode/contracts";
 
 export type SessionPhase = "disconnected" | "connecting" | "ready" | "running";
@@ -168,4 +173,30 @@ export interface ThreadSession {
   updatedAt: string;
   lastError?: string;
   orchestrationStatus: OrchestrationSessionStatus;
+}
+
+export interface Swarm {
+  id: SwarmId;
+  projectId: ProjectId;
+  title: string;
+  challengePrompt: string;
+  ctfCategory: CtfCategory | null;
+  threadIds: ThreadId[];
+  memberConfigs: SwarmMemberConfig[];
+  status: SwarmStatus;
+  winnerThreadId: ThreadId | null;
+  flagValue: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SwarmFinding {
+  id: FindingId;
+  swarmId: SwarmId;
+  threadId: ThreadId;
+  kind: SwarmFindingKind;
+  summary: string;
+  detail?: string;
+  sequence: number;
+  createdAt: string;
 }
