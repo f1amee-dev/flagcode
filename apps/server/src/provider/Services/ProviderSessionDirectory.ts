@@ -3,8 +3,8 @@ import type {
   ProviderSessionRuntimeStatus,
   RuntimeMode,
   ThreadId,
-} from "@flagcode/contracts";
-import { Option, ServiceMap } from "effect";
+} from "@t3tools/contracts";
+import { Option, Context } from "effect";
 import type { Effect } from "effect";
 
 import type {
@@ -51,7 +51,7 @@ export interface ProviderSessionDirectoryShape {
   >;
 }
 
-export class ProviderSessionDirectory extends ServiceMap.Service<
+export class ProviderSessionDirectory extends Context.Service<
   ProviderSessionDirectory,
   ProviderSessionDirectoryShape
->()("flagcode/provider/Services/ProviderSessionDirectory") {}
+>()("t3/provider/Services/ProviderSessionDirectory") {}

@@ -1,6 +1,6 @@
 {
-  "name": "@flagcode/desktop",
-  "version": "0.0.15",
+  "name": "@t3tools/desktop",
+  "version": "0.0.17",
   "private": true,
   "main": "dist-electron/main.js",
   "scripts": {
@@ -19,12 +19,12 @@
     "electron-updater": "^6.6.2"
   },
   "devDependencies": {
-    "@flagcode/contracts": "workspace:*",
-    "@flagcode/shared": "workspace:*",
+    "@t3tools/contracts": "workspace:*",
+    "@t3tools/shared": "workspace:*",
     "@types/node": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
-  "productName": "FlagCode (Alpha)"
+  "productName": "T3 Code (Alpha)"
 }

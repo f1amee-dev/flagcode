@@ -1,18 +1,26 @@
-import { ProjectId, type ModelSelection, type ThreadId, type TurnId } from "@flagcode/contracts";
+import {
+  type EnvironmentId,
+  ProjectId,
+  type ModelSelection,
+  type ProviderKind,
+  type ScopedThreadRef,
+  type ThreadId,
+  type TurnId,
+} from "@t3tools/contracts";
 import { type ChatMessage, type SessionPhase, type Thread, type ThreadSession } from "../types";
 import { randomUUID } from "~/lib/utils";
 import { type ComposerImageAttachment, type DraftThreadState } from "../composerDraftStore";
 import { Schema } from "effect";
-import { useStore } from "../store";
+import { selectThreadByRef, useStore } from "../store";
 import {
   filterTerminalContextsWithText,
   stripInlineTerminalContextPlaceholders,
   type TerminalContextDraft,
 } from "../lib/terminalContext";
 
-export const LAST_INVOKED_SCRIPT_BY_PROJECT_KEY = "flagcode:last-invoked-script-by-project";
+export const LAST_INVOKED_SCRIPT_BY_PROJECT_KEY = "t3code:last-invoked-script-by-project";
 export const MAX_HIDDEN_MOUNTED_TERMINAL_THREADS = 10;
-const WORKTREE_BRANCH_PREFIX = "flagcode";
+const WORKTREE_BRANCH_PREFIX = "t3code";
 
 export const LastInvokedScriptByProjectSchema = Schema.Record(ProjectId, Schema.String);
 
@@ -24,6 +32,7 @@ export function buildLocalDraftThread(
 ): Thread {
   return {
     id: threadId,
+    environmentId: draftThread.environmentId,
     codexThreadId: null,
     projectId: draftThread.projectId,
     title: "New thread",
@@ -38,20 +47,38 @@ export function buildLocalDraftThread(
     latestTurn: null,
     branch: draftThread.branch,
     worktreePath: draftThread.worktreePath,
-    ctfCategory: draftThread.ctfCategory ?? null,
     turnDiffSummaries: [],
     activities: [],
     proposedPlans: [],
   };
 }
 
+export function shouldWriteThreadErrorToCurrentServerThread(input: {
+  serverThread:
+    | {
+        environmentId: EnvironmentId;
+        id: ThreadId;
+      }
+    | null
+    | undefined;
+  routeThreadRef: ScopedThreadRef;
+  targetThreadId: ThreadId;
+}): boolean {
+  return Boolean(
+    input.serverThread &&
+    input.targetThreadId === input.routeThreadRef.threadId &&
+    input.serverThread.environmentId === input.routeThreadRef.environmentId &&
+    input.serverThread.id === input.targetThreadId,
+  );
+}
+
 export function reconcileMountedTerminalThreadIds(input: {
-  currentThreadIds: ReadonlyArray<ThreadId>;
-  openThreadIds: ReadonlyArray<ThreadId>;
-  activeThreadId: ThreadId | null;
+  currentThreadIds: ReadonlyArray<string>;
+  openThreadIds: ReadonlyArray<string>;
+  activeThreadId: string | null;
   activeThreadTerminalOpen: boolean;
   maxHiddenThreadCount?: number;
-}): ThreadId[] {
+}): string[] {
   const openThreadIdSet = new Set(input.openThreadIds);
   const hiddenThreadIds = input.currentThreadIds.filter(
     (threadId) => threadId !== input.activeThreadId && openThreadIdSet.has(threadId),
@@ -199,11 +226,22 @@ export function threadHasStarted(thread: Thread | null | undefined): boolean {
   );
 }
 
+export function deriveLockedProvider(input: {
+  thread: Thread | null | undefined;
+  selectedProvider: ProviderKind | null;
+  threadProvider: ProviderKind | null;
+}): ProviderKind | null {
+  if (!threadHasStarted(input.thread)) {
+    return null;
+  }
+  return input.thread?.session?.provider ?? input.threadProvider ?? input.selectedProvider ?? null;
+}
+
 export async function waitForStartedServerThread(
-  threadId: ThreadId,
+  threadRef: ScopedThreadRef,
   timeoutMs = 1_000,
 ): Promise<boolean> {
-  const getThread = () => useStore.getState().threads.find((thread) => thread.id === threadId);
+  const getThread = () => selectThreadByRef(useStore.getState(), threadRef);
   const thread = getThread();
 
   if (threadHasStarted(thread)) {
@@ -226,7 +264,7 @@ export async function waitForStartedServerThread(
     };
 
     const unsubscribe = useStore.subscribe((state) => {
-      if (!threadHasStarted(state.threads.find((thread) => thread.id === threadId))) {
+      if (!threadHasStarted(selectThreadByRef(state, threadRef))) {
         return;
       }
       finish(true);

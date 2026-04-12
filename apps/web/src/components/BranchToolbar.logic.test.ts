@@ -1,20 +1,27 @@
-import type { GitBranch } from "@flagcode/contracts";
+import { EnvironmentId, type GitBranch } from "@t3tools/contracts";
 import { describe, expect, it } from "vitest";
 import {
   dedupeRemoteBranchesWithLocalMatches,
   deriveLocalBranchNameFromRemoteRef,
+  resolveEnvironmentOptionLabel,
   resolveBranchSelectionTarget,
+  resolveCurrentWorkspaceLabel,
   resolveDraftEnvModeAfterBranchChange,
+  resolveEffectiveEnvMode,
+  resolveEnvModeLabel,
   resolveBranchToolbarValue,
   shouldIncludeBranchPickerItem,
 } from "./BranchToolbar.logic";
+
+const localEnvironmentId = EnvironmentId.make("environment-local");
+const remoteEnvironmentId = EnvironmentId.make("environment-remote");
 
 describe("resolveDraftEnvModeAfterBranchChange", () => {
   it("switches to local mode when returning from an existing worktree to the main worktree", () => {
     expect(
       resolveDraftEnvModeAfterBranchChange({
         nextWorktreePath: null,
-        currentWorktreePath: "/repo/.flagcode/worktrees/feature-a",
+        currentWorktreePath: "/repo/.t3/worktrees/feature-a",
         effectiveEnvMode: "worktree",
       }),
     ).toBe("local");
@@ -33,7 +40,7 @@ describe("resolveDraftEnvModeAfterBranchChange", () => {
   it("uses worktree mode when selecting a branch already attached to a worktree", () => {
     expect(
       resolveDraftEnvModeAfterBranchChange({
-        nextWorktreePath: "/repo/.flagcode/worktrees/feature-a",
+        nextWorktreePath: "/repo/.t3/worktrees/feature-a",
         currentWorktreePath: null,
         effectiveEnvMode: "local",
       }),
@@ -73,6 +80,80 @@ describe("resolveBranchToolbarValue", () => {
         currentGitBranch: "main",
       }),
     ).toBe("main");
+  });
+});
+
+describe("resolveEnvironmentOptionLabel", () => {
+  it("prefers the primary environment's machine label", () => {
+    expect(
+      resolveEnvironmentOptionLabel({
+        isPrimary: true,
+        environmentId: localEnvironmentId,
+        runtimeLabel: "Julius's Mac mini",
+        savedLabel: "Local environment",
+      }),
+    ).toBe("Julius's Mac mini");
+  });
+
+  it("falls back to 'This device' for generic primary labels", () => {
+    expect(
+      resolveEnvironmentOptionLabel({
+        isPrimary: true,
+        environmentId: localEnvironmentId,
+        runtimeLabel: "Local environment",
+        savedLabel: "Local",
+      }),
+    ).toBe("This device");
+  });
+
+  it("keeps configured labels for non-primary environments", () => {
+    expect(
+      resolveEnvironmentOptionLabel({
+        isPrimary: false,
+        environmentId: remoteEnvironmentId,
+        runtimeLabel: null,
+        savedLabel: "Build box",
+      }),
+    ).toBe("Build box");
+  });
+});
+
+describe("resolveEffectiveEnvMode", () => {
+  it("treats draft threads already attached to a worktree as current-checkout mode", () => {
+    expect(
+      resolveEffectiveEnvMode({
+        activeWorktreePath: "/repo/.t3/worktrees/feature-a",
+        hasServerThread: false,
+        draftThreadEnvMode: "worktree",
+      }),
+    ).toBe("local");
+  });
+
+  it("keeps explicit new-worktree mode for draft threads without a worktree path", () => {
+    expect(
+      resolveEffectiveEnvMode({
+        activeWorktreePath: null,
+        hasServerThread: false,
+        draftThreadEnvMode: "worktree",
+      }),
+    ).toBe("worktree");
+  });
+});
+
+describe("resolveEnvModeLabel", () => {
+  it("uses explicit workspace labels", () => {
+    expect(resolveEnvModeLabel("local")).toBe("Current checkout");
+    expect(resolveEnvModeLabel("worktree")).toBe("New worktree");
+  });
+});
+
+describe("resolveCurrentWorkspaceLabel", () => {
+  it("describes the main repo checkout when no worktree path is active", () => {
+    expect(resolveCurrentWorkspaceLabel(null)).toBe("Current checkout");
+  });
+
+  it("describes the active checkout as a worktree when one is attached", () => {
+    expect(resolveCurrentWorkspaceLabel("/repo/.t3/worktrees/feature-a")).toBe("Current worktree");
   });
 });
 
@@ -204,15 +285,15 @@ describe("resolveBranchSelectionTarget", () => {
     expect(
       resolveBranchSelectionTarget({
         activeProjectCwd: "/repo",
-        activeWorktreePath: "/repo/.flagcode/worktrees/feature-a",
+        activeWorktreePath: "/repo/.t3/worktrees/feature-a",
         branch: {
           isDefault: false,
-          worktreePath: "/repo/.flagcode/worktrees/feature-b",
+          worktreePath: "/repo/.t3/worktrees/feature-b",
         },
       }),
     ).toEqual({
-      checkoutCwd: "/repo/.flagcode/worktrees/feature-b",
-      nextWorktreePath: "/repo/.flagcode/worktrees/feature-b",
+      checkoutCwd: "/repo/.t3/worktrees/feature-b",
+      nextWorktreePath: "/repo/.t3/worktrees/feature-b",
       reuseExistingWorktree: true,
     });
   });
@@ -221,7 +302,7 @@ describe("resolveBranchSelectionTarget", () => {
     expect(
       resolveBranchSelectionTarget({
         activeProjectCwd: "/repo",
-        activeWorktreePath: "/repo/.flagcode/worktrees/feature-a",
+        activeWorktreePath: "/repo/.t3/worktrees/feature-a",
         branch: {
           isDefault: true,
           worktreePath: "/repo",
@@ -238,7 +319,7 @@ describe("resolveBranchSelectionTarget", () => {
     expect(
       resolveBranchSelectionTarget({
         activeProjectCwd: "/repo",
-        activeWorktreePath: "/repo/.flagcode/worktrees/feature-a",
+        activeWorktreePath: "/repo/.t3/worktrees/feature-a",
         branch: {
           isDefault: true,
           worktreePath: null,
@@ -255,15 +336,15 @@ describe("resolveBranchSelectionTarget", () => {
     expect(
       resolveBranchSelectionTarget({
         activeProjectCwd: "/repo",
-        activeWorktreePath: "/repo/.flagcode/worktrees/feature-a",
+        activeWorktreePath: "/repo/.t3/worktrees/feature-a",
         branch: {
           isDefault: false,
           worktreePath: null,
         },
       }),
     ).toEqual({
-      checkoutCwd: "/repo/.flagcode/worktrees/feature-a",
-      nextWorktreePath: "/repo/.flagcode/worktrees/feature-a",
+      checkoutCwd: "/repo/.t3/worktrees/feature-a",
+      nextWorktreePath: "/repo/.t3/worktrees/feature-a",
       reuseExistingWorktree: false,
     });
   });

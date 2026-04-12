@@ -1,6 +1,6 @@
 {
-  "name": "@flagcode/contracts",
-  "version": "0.0.15",
+  "name": "@t3tools/contracts",
+  "version": "0.0.17",
   "private": true,
   "files": [
     "dist"

@@ -13,8 +13,8 @@ import {
   OrchestrationThreadActivityTone,
   ThreadId,
   TurnId,
-} from "@flagcode/contracts";
-import { Schema, ServiceMap } from "effect";
+} from "@t3tools/contracts";
+import { Schema, Context } from "effect";
 import type { Effect } from "effect";
 
 import type { ProjectionRepositoryError } from "../Errors.ts";
@@ -77,9 +77,7 @@ export interface ProjectionThreadActivityRepositoryShape {
 /**
  * ProjectionThreadActivityRepository - Service tag for thread activity persistence.
  */
-export class ProjectionThreadActivityRepository extends ServiceMap.Service<
+export class ProjectionThreadActivityRepository extends Context.Service<
   ProjectionThreadActivityRepository,
   ProjectionThreadActivityRepositoryShape
->()(
-  "flagcode/persistence/Services/ProjectionThreadActivities/ProjectionThreadActivityRepository",
-) {}
+>()("t3/persistence/Services/ProjectionThreadActivities/ProjectionThreadActivityRepository") {}

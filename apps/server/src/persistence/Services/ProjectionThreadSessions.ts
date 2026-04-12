@@ -12,8 +12,8 @@ import {
   OrchestrationSessionStatus,
   ThreadId,
   TurnId,
-} from "@flagcode/contracts";
-import { Option, Schema, ServiceMap } from "effect";
+} from "@t3tools/contracts";
+import { Option, Schema, Context } from "effect";
 import type { Effect } from "effect";
 
 import type { ProjectionRepositoryError } from "../Errors.ts";
@@ -68,7 +68,7 @@ export interface ProjectionThreadSessionRepositoryShape {
 /**
  * ProjectionThreadSessionRepository - Service tag for thread-session persistence.
  */
-export class ProjectionThreadSessionRepository extends ServiceMap.Service<
+export class ProjectionThreadSessionRepository extends Context.Service<
   ProjectionThreadSessionRepository,
   ProjectionThreadSessionRepositoryShape
->()("flagcode/persistence/Services/ProjectionThreadSessions/ProjectionThreadSessionRepository") {}
+>()("t3/persistence/Services/ProjectionThreadSessions/ProjectionThreadSessionRepository") {}

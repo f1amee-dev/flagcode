@@ -5,16 +5,16 @@
  * workspace thread timeline. It does not store user-facing checkpoint metadata
  * and does not coordinate provider conversation rollback.
  *
- * Uses Effect `ServiceMap.Service` for dependency injection and exposes typed
+ * Uses Effect `Context.Service` for dependency injection and exposes typed
  * domain errors for checkpoint storage operations.
  *
  * @module CheckpointStore
  */
-import { ServiceMap } from "effect";
+import { Context } from "effect";
 import type { Effect } from "effect";
 
 import type { CheckpointStoreError } from "../Errors.ts";
-import { CheckpointRef } from "@flagcode/contracts";
+import { CheckpointRef } from "@t3tools/contracts";
 
 export interface CaptureCheckpointInput {
   readonly cwd: string;
@@ -95,6 +95,6 @@ export interface CheckpointStoreShape {
 /**
  * CheckpointStore - Service tag for checkpoint persistence and restore operations.
  */
-export class CheckpointStore extends ServiceMap.Service<CheckpointStore, CheckpointStoreShape>()(
-  "flagcode/checkpointing/Services/CheckpointStore",
+export class CheckpointStore extends Context.Service<CheckpointStore, CheckpointStoreShape>()(
+  "t3/checkpointing/Services/CheckpointStore",
 ) {}

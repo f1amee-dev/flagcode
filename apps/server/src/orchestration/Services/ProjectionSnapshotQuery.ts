@@ -12,8 +12,8 @@ import type {
   OrchestrationReadModel,
   ProjectId,
   ThreadId,
-} from "@flagcode/contracts";
-import { ServiceMap } from "effect";
+} from "@t3tools/contracts";
+import { Context } from "effect";
 import type { Option } from "effect";
 import type { Effect } from "effect";
 
@@ -74,7 +74,7 @@ export interface ProjectionSnapshotQueryShape {
 /**
  * ProjectionSnapshotQuery - Service tag for projection snapshot queries.
  */
-export class ProjectionSnapshotQuery extends ServiceMap.Service<
+export class ProjectionSnapshotQuery extends Context.Service<
   ProjectionSnapshotQuery,
   ProjectionSnapshotQueryShape
->()("flagcode/orchestration/Services/ProjectionSnapshotQuery") {}
+>()("t3/orchestration/Services/ProjectionSnapshotQuery") {}

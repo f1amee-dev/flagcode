@@ -1,13 +1,14 @@
 import {
-  type CtfCategory,
+  type EnvironmentId,
   type EditorId,
   type ProjectScript,
   type ResolvedKeybindingsConfig,
   type ThreadId,
-} from "@flagcode/contracts";
+} from "@t3tools/contracts";
+import { scopeThreadRef } from "@t3tools/client-runtime";
 import { memo } from "react";
 import GitActionsControl from "../GitActionsControl";
-import WriteupButton from "../WriteupButton";
+import { type DraftId } from "~/composerDraftStore";
 import { DiffIcon, TerminalSquareIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
@@ -17,11 +18,11 @@ import { SidebarTrigger } from "../ui/sidebar";
 import { OpenInPicker } from "./OpenInPicker";
 
 interface ChatHeaderProps {
+  activeThreadEnvironmentId: EnvironmentId;
   activeThreadId: ThreadId;
+  draftId?: DraftId;
   activeThreadTitle: string;
   activeProjectName: string | undefined;
-  ctfCategory: CtfCategory | null;
-  projectCwd: string | null;
   isGitRepo: boolean;
   openInCwd: string | null;
   activeProjectScripts: ProjectScript[] | undefined;
@@ -43,11 +44,11 @@ interface ChatHeaderProps {
 }
 
 export const ChatHeader = memo(function ChatHeader({
+  activeThreadEnvironmentId,
   activeThreadId,
+  draftId,
   activeThreadTitle,
   activeProjectName,
-  ctfCategory,
-  projectCwd,
   isGitRepo,
   openInCwd,
   activeProjectScripts,
@@ -107,10 +108,13 @@ export const ChatHeader = memo(function ChatHeader({
             openInCwd={openInCwd}
           />
         )}
-        {ctfCategory && projectCwd && (
-          <WriteupButton cwd={projectCwd} activeThreadId={activeThreadId} />
+        {activeProjectName && (
+          <GitActionsControl
+            gitCwd={gitCwd}
+            activeThreadRef={scopeThreadRef(activeThreadEnvironmentId, activeThreadId)}
+            {...(draftId ? { draftId } : {})}
+          />
         )}
-        {activeProjectName && <GitActionsControl gitCwd={gitCwd} activeThreadId={activeThreadId} />}
         <Tooltip>
           <TooltipTrigger
             render={

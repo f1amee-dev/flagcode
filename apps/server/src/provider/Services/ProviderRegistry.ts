@@ -6,8 +6,8 @@
  *
  * @module ProviderRegistry
  */
-import type { ProviderKind, ServerProvider } from "@flagcode/contracts";
-import { ServiceMap } from "effect";
+import type { ProviderKind, ServerProvider } from "@t3tools/contracts";
+import { Context } from "effect";
 import type { Effect, Stream } from "effect";
 
 export interface ProviderRegistryShape {
@@ -27,6 +27,6 @@ export interface ProviderRegistryShape {
   readonly streamChanges: Stream.Stream<ReadonlyArray<ServerProvider>>;
 }
 
-export class ProviderRegistry extends ServiceMap.Service<ProviderRegistry, ProviderRegistryShape>()(
-  "flagcode/provider/Services/ProviderRegistry",
+export class ProviderRegistry extends Context.Service<ProviderRegistry, ProviderRegistryShape>()(
+  "t3/provider/Services/ProviderRegistry",
 ) {}

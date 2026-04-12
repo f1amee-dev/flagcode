@@ -1,5 +1,5 @@
 {
-  "name": "@flagcode/shared",
+  "name": "@t3tools/shared",
   "version": "0.0.0-alpha.1",
   "private": true,
   "type": "module",
@@ -52,13 +52,13 @@
       "types": "./src/projectScripts.ts",
       "import": "./src/projectScripts.ts"
     },
-    "./ctf": {
-      "types": "./src/ctf.ts",
-      "import": "./src/ctf.ts"
+    "./searchRanking": {
+      "types": "./src/searchRanking.ts",
+      "import": "./src/searchRanking.ts"
     },
-    "./rpc": {
-      "types": "./src/rpc.ts",
-      "import": "./src/rpc.ts"
+    "./qrCode": {
+      "types": "./src/qrCode.ts",
+      "import": "./src/qrCode.ts"
     }
   },
   "scripts": {
@@ -67,7 +67,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@flagcode/contracts": "workspace:*",
+    "@t3tools/contracts": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {

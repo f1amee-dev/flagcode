@@ -7,7 +7,6 @@
  * @module ProjectionThreadRepository
  */
 import {
-  CtfCategory,
   IsoDateTime,
   ModelSelection,
   ProjectId,
@@ -15,8 +14,8 @@ import {
   RuntimeMode,
   ThreadId,
   TurnId,
-} from "@flagcode/contracts";
-import { Option, Schema, ServiceMap } from "effect";
+} from "@t3tools/contracts";
+import { Option, Schema, Context } from "effect";
 import type { Effect } from "effect";
 
 import type { ProjectionRepositoryError } from "../Errors.ts";
@@ -30,7 +29,6 @@ export const ProjectionThread = Schema.Struct({
   interactionMode: ProviderInteractionMode,
   branch: Schema.NullOr(Schema.String),
   worktreePath: Schema.NullOr(Schema.String),
-  ctfCategory: Schema.NullOr(CtfCategory).pipe(Schema.withDecodingDefault(() => null)),
   latestTurnId: Schema.NullOr(TurnId),
   createdAt: IsoDateTime,
   updatedAt: IsoDateTime,
@@ -92,7 +90,7 @@ export interface ProjectionThreadRepositoryShape {
 /**
  * ProjectionThreadRepository - Service tag for thread projection persistence.
  */
-export class ProjectionThreadRepository extends ServiceMap.Service<
+export class ProjectionThreadRepository extends Context.Service<
   ProjectionThreadRepository,
   ProjectionThreadRepositoryShape
->()("flagcode/persistence/Services/ProjectionThreads/ProjectionThreadRepository") {}
+>()("t3/persistence/Services/ProjectionThreads/ProjectionThreadRepository") {}

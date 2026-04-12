@@ -7,8 +7,8 @@
  *
  * @module ProviderAdapterRegistry
  */
-import type { ProviderKind } from "@flagcode/contracts";
-import { ServiceMap } from "effect";
+import type { ProviderKind } from "@t3tools/contracts";
+import { Context } from "effect";
 import type { Effect } from "effect";
 
 import type { ProviderAdapterError, ProviderUnsupportedError } from "../Errors.ts";
@@ -34,9 +34,9 @@ export interface ProviderAdapterRegistryShape {
 /**
  * ProviderAdapterRegistry - Service tag for provider adapter lookup.
  */
-export class ProviderAdapterRegistry extends ServiceMap.Service<
+export class ProviderAdapterRegistry extends Context.Service<
   ProviderAdapterRegistry,
   ProviderAdapterRegistryShape
->()("flagcode/provider/Services/ProviderAdapterRegistry") {}
+>()("t3/provider/Services/ProviderAdapterRegistry") {}
 
 // Dummy comment for workflow testing.
