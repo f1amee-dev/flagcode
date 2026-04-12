@@ -17,6 +17,7 @@ import {
   type ProviderTurnStartResult,
   RuntimeMode,
   ProviderInteractionMode,
+  type CtfCategory,
 } from "@flagcode/contracts";
 import { resolveCtfSystemPrompt } from "@flagcode/shared/ctf";
 import { buildSandboxInstructions } from "@flagcode/shared/sandbox";
@@ -117,6 +118,8 @@ export interface CodexAppServerSendTurnInput {
   readonly serviceTier?: string | null;
   readonly effort?: string;
   readonly interactionMode?: ProviderInteractionMode;
+  readonly ctfCategory?: CtfCategory;
+  readonly ctfCustomPrompts?: Partial<Record<CtfCategory, string | undefined>>;
 }
 
 export interface CodexAppServerStartSessionInput {

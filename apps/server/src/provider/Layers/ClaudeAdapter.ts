@@ -80,7 +80,7 @@ import { ClaudeAdapter, type ClaudeAdapterShape } from "../Services/ClaudeAdapte
 import { type EventNdjsonLogger, makeEventNdjsonLogger } from "./EventNdjsonLogger.ts";
 import { resolveCtfSystemPrompt, BINARY_NINJA_TOOL_INSTRUCTIONS } from "@flagcode/shared/ctf";
 import { buildSandboxInstructions } from "@flagcode/shared/sandbox";
-import { SandboxService, type SandboxHandle } from "../../sandbox/SandboxService.ts";
+import { SandboxService } from "../../sandbox/SandboxService.ts";
 
 const PROVIDER = "claudeAgent" as const;
 type ClaudeTextStreamKind = Extract<RuntimeContentStreamKind, "assistant_text" | "reasoning_text">;
@@ -935,7 +935,6 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
   const runtimeEventQueue = yield* Queue.unbounded<ProviderRuntimeEvent>();
   const serverSettingsService = yield* ServerSettingsService;
   const sandboxService = yield* SandboxService;
-  const sandboxHandles = new Map<ThreadId, SandboxHandle>();
 
   const nowIso = Effect.map(DateTime.now, DateTime.formatIso);
   const nextEventId = Effect.map(Random.nextUUIDv4, (id) => EventId.make(id));
@@ -2737,7 +2736,15 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
 
       // Docker sandbox injection
       if (input.dockerSandbox === true) {
-        const handle = yield* sandboxService.startContainer(input.cwd ?? process.cwd()).pipe(
+        if (!input.cwd) {
+          return yield* new ProviderAdapterProcessError({
+            provider: PROVIDER,
+            threadId: input.threadId,
+            detail:
+              "Docker sandbox requires an explicit workspace path (cwd). Refusing to fall back to the server working directory.",
+          });
+        }
+        const serviceHandle = yield* sandboxService.startContainer(input.cwd).pipe(
           Effect.mapError(
             (error) =>
               new ProviderAdapterProcessError({
@@ -2748,8 +2755,14 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
               }),
           ),
         );
-        sandboxHandles.set(input.threadId, handle);
-        const sandboxPrompt = buildSandboxInstructions(handle.containerId, handle.bridgeHost);
+        sandboxHandles.register({
+          threadId: input.threadId,
+          containerId: serviceHandle.containerId,
+          stop: sandboxService.stopContainer(serviceHandle).pipe(
+            Effect.catch(() => Effect.void),
+          ),
+        });
+        const sandboxPrompt = buildSandboxInstructions(serviceHandle.containerId, serviceHandle.bridgeHost);
         ctfSystemPromptAppend = ctfSystemPromptAppend
           ? `${ctfSystemPromptAppend}\n\n${sandboxPrompt}`
           : sandboxPrompt;
@@ -2812,23 +2825,6 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
             cause,
           }),
       });
-
-      // -- Sandbox container lifecycle hook ---------------------------------
-      // When sandbox container support is added, create the container here
-      // and register it with `sandboxHandles.register(handle)`.
-      //
-      // Use `Effect.ensuring` so that if any subsequent step in startSession
-      // fails the container is torn down:
-      //
-      //   const handle = yield* createSandboxContainer(input);
-      //   sandboxHandles.register(handle);
-      //   yield* Effect.ensuring(
-      //     remainingStartupSteps,
-      //     Effect.suspend(() =>
-      //       sessions.has(threadId) ? Effect.void : sandboxHandles.stopOne(threadId),
-      //     ),
-      //   );
-      // -------------------------------------------------------------------
 
       const session: ProviderSession = {
         threadId,
@@ -3101,18 +3097,7 @@ const makeClaudeAdapter = Effect.fn("makeClaudeAdapter")(function* (
       yield* stopSessionInternal(context, {
         emitExitEvent: true,
       });
-      const handle = sandboxHandles.get(threadId);
-      if (handle) {
-        sandboxHandles.delete(threadId);
-        yield* sandboxService.stopContainer(handle).pipe(
-          Effect.catch((error) =>
-            Effect.logWarning("Failed to stop sandbox container on session stop", {
-              containerId: handle.containerId,
-              error: error.message,
-            }),
-          ),
-        );
-      }
+      yield* sandboxHandles.stopOne(threadId);
     },
   );
 

@@ -131,6 +131,7 @@ function makeState(thread: Thread): AppState {
         branch: thread.branch,
         worktreePath: thread.worktreePath,
         ctfCategory: thread.ctfCategory,
+        dockerSandbox: thread.dockerSandbox,
       },
     },
     threadSessionById: {

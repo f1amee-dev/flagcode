@@ -16,8 +16,7 @@ import {
   ThreadId,
   TurnId,
 } from "@flagcode/contracts";
-import { Option, Schema, Context } from "effect";
-import type { Effect } from "effect";
+import { Effect, Option, Schema, Context } from "effect";
 
 import type { ProjectionRepositoryError } from "../Errors.ts";
 
@@ -32,7 +31,7 @@ export const ProjectionThread = Schema.Struct({
   worktreePath: Schema.NullOr(Schema.String),
   ctfCategory: Schema.NullOr(CtfCategory),
   dockerSandbox: Schema.NullOr(Schema.Union([Schema.Boolean, Schema.BooleanFromBit])).pipe(
-    Schema.withDecodingDefault(() => null),
+    Schema.withDecodingDefault(Effect.succeed(null)),
   ),
   latestTurnId: Schema.NullOr(TurnId),
   createdAt: IsoDateTime,

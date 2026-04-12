@@ -140,6 +140,7 @@ export interface ThreadShell {
   branch: string | null;
   worktreePath: string | null;
   ctfCategory: CtfCategory | null;
+  dockerSandbox: boolean | null;
 }
 
 export interface ThreadTurnState {

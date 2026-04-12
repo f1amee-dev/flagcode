@@ -27,6 +27,7 @@ function makeThread(overrides: Partial<Thread> = {}): Thread {
     branch: null,
     worktreePath: null,
     ctfCategory: null,
+    dockerSandbox: null,
     turnDiffSummaries: [],
     activities: [],
     ...overrides,

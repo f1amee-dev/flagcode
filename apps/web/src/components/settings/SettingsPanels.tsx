@@ -14,10 +14,10 @@ import {
   PROVIDER_DISPLAY_NAMES,
   type ScopedThreadRef,
   type ProviderKind,
-  type SandboxInstallProgressEvent,
   type ServerProvider,
   type ServerProviderModel,
 } from "@flagcode/contracts";
+import type { SandboxInstallProgressEvent } from "@flagcode/shared/rpc";
 import { scopeThreadRef } from "@flagcode/client-runtime";
 import { DEFAULT_UNIFIED_SETTINGS } from "@flagcode/contracts/settings";
 import { normalizeModelSlug } from "@flagcode/shared/model";
@@ -77,6 +77,7 @@ import {
   useServerObservability,
   useServerProviders,
 } from "../../rpc/serverState";
+import { getPrimaryEnvironmentConnection } from "../../environments/runtime";
 
 const THEME_OPTIONS = [
   {
@@ -233,7 +234,7 @@ function AboutVersionTitle() {
 function SandboxSection() {
   const statusQuery = useQuery({
     queryKey: ["sandbox", "status"],
-    queryFn: () => getWsRpcClient().sandbox.getStatus(),
+    queryFn: () => getPrimaryEnvironmentConnection().client.sandbox.getStatus(),
     staleTime: 10_000,
     refetchOnWindowFocus: false,
   });
@@ -303,12 +304,12 @@ function SandboxSection() {
   );
 
   const handlePull = useCallback(
-    () => runProgressStream((cb) => getWsRpcClient().sandbox.installImage(cb)),
+    () => runProgressStream((cb) => getPrimaryEnvironmentConnection().client.sandbox.installImage(cb)),
     [runProgressStream],
   );
 
   const handleBuild = useCallback(
-    () => runProgressStream((cb) => getWsRpcClient().sandbox.buildImage(cb)),
+    () => runProgressStream((cb) => getPrimaryEnvironmentConnection().client.sandbox.buildImage(cb)),
     [runProgressStream],
   );
 

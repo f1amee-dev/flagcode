@@ -246,6 +246,7 @@ function toThreadShell(thread: Thread): ThreadShell {
     branch: thread.branch,
     worktreePath: thread.worktreePath,
     ctfCategory: thread.ctfCategory,
+    dockerSandbox: thread.dockerSandbox ?? null,
   };
 }
 

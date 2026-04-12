@@ -274,6 +274,7 @@ function setStoreThreads(threads: ReadonlyArray<ReturnType<typeof makeThread>>) 
           branch: thread.branch,
           worktreePath: thread.worktreePath,
           ctfCategory: thread.ctfCategory,
+          dockerSandbox: thread.dockerSandbox,
         },
       ]),
     ),

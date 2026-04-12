@@ -5,7 +5,7 @@
  *
  * @module SandboxService
  */
-import { Data, Effect, ServiceMap, Stream } from "effect";
+import { Context, Data, Effect, Stream } from "effect";
 
 export class SandboxError extends Data.TaggedError("SandboxError")<{
   readonly message: string;
@@ -38,6 +38,6 @@ export interface SandboxServiceShape {
 /**
  * SandboxService - Service tag for Docker CTF sandbox management.
  */
-export class SandboxService extends ServiceMap.Service<SandboxService, SandboxServiceShape>()(
+export class SandboxService extends Context.Service<SandboxService, SandboxServiceShape>()(
   "flagcode/sandbox/SandboxService",
 ) {}

@@ -326,14 +326,25 @@ async function startContainerImpl(workspacePath: string): Promise<SandboxHandle>
     throw new Error("docker run did not return a container ID");
   }
 
-  // Write helper script to workspace
-  if (process.platform === "win32") {
-    const scriptPath = path.join(workspacePath, "sb.cmd");
-    fs.writeFileSync(scriptPath, `@echo off\ndocker exec -i ${containerId} bash -c "%*"\n`);
-  } else {
-    const scriptPath = path.join(workspacePath, "sb");
-    fs.writeFileSync(scriptPath, `#!/bin/bash\ndocker exec -i ${containerId} bash -c "$*"\n`);
-    fs.chmodSync(scriptPath, 0o755);
+  // Write helper script to workspace — if this fails, stop the container
+  // so it doesn't leak (Issue #4: container start may leak).
+  try {
+    if (process.platform === "win32") {
+      const scriptPath = path.join(workspacePath, "sb.cmd");
+      fs.writeFileSync(scriptPath, `@echo off\ndocker exec -i ${containerId} bash -c "%*"\n`);
+    } else {
+      const scriptPath = path.join(workspacePath, "sb");
+      fs.writeFileSync(scriptPath, `#!/bin/bash\ndocker exec -i ${containerId} bash -c "$*"\n`);
+      fs.chmodSync(scriptPath, 0o755);
+    }
+  } catch (writeError) {
+    // Best-effort stop the container before rethrowing
+    try {
+      await execFile("docker", ["stop", containerId], { timeout: 15_000 });
+    } catch {
+      // Swallow stop errors — the original write error is more important
+    }
+    throw writeError;
   }
 
   return { containerId, bridgeHost };

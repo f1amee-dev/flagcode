@@ -7,8 +7,8 @@ import {
   type LocalApi,
   ORCHESTRATION_WS_METHODS,
   type ServerSettingsPatch,
-  type SandboxInstallProgressEvent,
 } from "@flagcode/contracts";
+import type { SandboxInstallProgressEvent } from "@flagcode/shared/rpc";
 import { WS_METHODS } from "@flagcode/shared/rpc";
 import { applyGitStatusStreamEvent } from "@flagcode/shared/git";
 import { Effect, Stream } from "effect";

@@ -1009,7 +1009,7 @@ const makeWsRpcLayer = (currentSessionId: AuthSessionId) =>
                 imageInstalled,
                 ...(imageInstalled ? { imageTag: `${SANDBOX_IMAGE_NAME}:${SANDBOX_IMAGE_TAG}` } : {}),
               };
-            }),
+            }).pipe(Effect.orDie),
             { "rpc.aggregate": "sandbox" },
           ),
         [WS_METHODS.sandboxInstallImage]: (_input) =>

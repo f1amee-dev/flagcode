@@ -2,7 +2,7 @@ import {
   CODEX_REASONING_EFFORT_OPTIONS,
   type ClaudeCodeEffort,
   type CodexReasoningEffort,
-  type CtfCategory,
+  CtfCategory,
   DEFAULT_MODEL_BY_PROVIDER,
   type EnvironmentId,
   ModelSelection,
@@ -321,6 +321,7 @@ interface ComposerDraftStoreState {
       runtimeMode?: RuntimeMode;
       interactionMode?: ProviderInteractionMode;
       ctfCategory?: CtfCategory | null;
+      dockerSandbox?: boolean | null;
     },
   ) => void;
   clearProjectDraftThreadId: (projectRef: ScopedProjectRef) => void;
@@ -1234,7 +1235,7 @@ function normalizePersistedDraftThreads(
         branch: typeof branch === "string" ? branch : null,
         worktreePath: normalizedWorktreePath,
         envMode: normalizeDraftThreadEnvMode(candidateDraftThread.envMode, normalizedWorktreePath),
-        ...(ctfCategory ? { ctfCategory } : {}),
+        ...(candidateDraftThread.ctfCategory ? { ctfCategory: candidateDraftThread.ctfCategory as CtfCategory } : {}),
         dockerSandbox:
           typeof candidateDraftThread.dockerSandbox === "boolean"
             ? candidateDraftThread.dockerSandbox
@@ -1974,6 +1975,10 @@ const composerDraftStore = create<ComposerDraftStoreState>()(
               options.ctfCategory === undefined
                 ? (existing.ctfCategory ?? null)
                 : options.ctfCategory;
+            const nextDockerSandbox =
+              options.dockerSandbox === undefined
+                ? (existing.dockerSandbox ?? null)
+                : (options.dockerSandbox ?? null);
             const nextDraftThread: DraftThreadState = {
               threadId: existing.threadId,
               environmentId: nextProjectRef.environmentId,
@@ -1988,6 +1993,7 @@ const composerDraftStore = create<ComposerDraftStoreState>()(
               branch: nextBranch,
               worktreePath: nextWorktreePath,
               ctfCategory: nextCtfCategory,
+              dockerSandbox: nextDockerSandbox,
               envMode:
                 options.envMode ??
                 (nextWorktreePath
@@ -2007,6 +2013,7 @@ const composerDraftStore = create<ComposerDraftStoreState>()(
               nextDraftThread.branch === existing.branch &&
               nextDraftThread.worktreePath === existing.worktreePath &&
               nextDraftThread.ctfCategory === existing.ctfCategory &&
+              nextDraftThread.dockerSandbox === existing.dockerSandbox &&
               nextDraftThread.envMode === existing.envMode &&
               scopedThreadRefsEqual(nextDraftThread.promotedTo, existing.promotedTo);
             if (isUnchanged) {
@@ -2495,7 +2502,7 @@ const composerDraftStore = create<ComposerDraftStoreState>()(
           if (threadKey.length === 0) {
             return;
           }
-          const nextDockerSandbox = dockerSandbox ?? null;
+          const nextDockerSandbox = typeof dockerSandbox === "boolean" ? dockerSandbox : null;
           set((state) => {
             const existing = state.draftsByThreadKey[threadKey];
             if (!existing && nextDockerSandbox === null) {
