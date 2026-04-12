@@ -1,6 +1,6 @@
 # FlagCode
 
-FlagCode is a fork of [FlagCode](https://github.com/pingdotgg/t3code), a minimal web GUI for coding agents. FlagCode is tailored for solving CTF challenges.
+FlagCode is a fork of [T3 Code](https://github.com/pingdotgg/t3code), a minimal web GUI for coding agents. FlagCode is tailored for solving CTF challenges.
 
 ## Installation
 

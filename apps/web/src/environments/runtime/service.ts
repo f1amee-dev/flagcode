@@ -6,6 +6,7 @@ import {
   type ServerConfig,
   type TerminalEvent,
   ThreadId,
+  type SwarmId,
 } from "@flagcode/contracts";
 import { type QueryClient } from "@tanstack/react-query";
 import { Throttler } from "@tanstack/react-pacer";
@@ -57,6 +58,7 @@ import {
   selectThreadsAcrossEnvironments,
 } from "~/store";
 import { useTerminalStateStore } from "~/terminalStateStore";
+import { toastManager } from "~/components/ui/toast";
 import { useUiStateStore } from "~/uiStateStore";
 import { WsTransport } from "../../rpc/wsTransport";
 import { createWsRpcClient, type WsRpcClient } from "../../rpc/wsRpcClient";
@@ -212,6 +214,15 @@ export function shouldApplyTerminalEvent(input: {
   return input.hasDraftThread;
 }
 
+/**
+ * Strips the outer wrapper from a flag value (e.g. `flag{CONTENT}` → `CONTENT`,
+ * `CTF2026[CONTENT]` → `CONTENT`) so we only display the inner content.
+ */
+function extractFlagContent(raw: string): string {
+  const match = raw.match(/^[^{\[]+[{\[](.+)[}\]]$/s);
+  return match?.[1] ?? raw;
+}
+
 function applyRecoveredEventBatch(
   events: ReadonlyArray<OrchestrationEvent>,
   environmentId: EnvironmentId,
@@ -235,6 +246,36 @@ function applyRecoveredEventBatch(
   }
 
   useStore.getState().applyOrchestrationEvents(uiEvents, environmentId);
+
+  // Show a toast notification when a swarm captures a flag
+  for (const event of events) {
+    if (event.type === "swarm.flag-found") {
+      const payload = event.payload as unknown as {
+        swarmId: string;
+        flagValue: string;
+      };
+      const envState = useStore.getState().environmentStateById[environmentId];
+      const swarm = envState?.swarmById[payload.swarmId as SwarmId];
+      const innerFlag = extractFlagContent(payload.flagValue);
+      toastManager.add({
+        type: "success",
+        title: "Flag Captured!",
+        description: swarm?.title ?? "A swarm has captured the flag.",
+        actionProps: {
+          children: "Show Flag",
+          onClick: () => {
+            toastManager.add({
+              type: "info",
+              title: "Captured Flag",
+              description: innerFlag,
+              timeout: 0,
+            });
+          },
+        },
+      });
+    }
+  }
+
   if (needsProjectUiSync) {
     const projects = selectProjectsAcrossEnvironments(useStore.getState());
     useUiStateStore.getState().syncProjects(

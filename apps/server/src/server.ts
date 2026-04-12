@@ -63,6 +63,9 @@ import {
 import { ServerSecretStoreLive } from "./auth/Layers/ServerSecretStore";
 import { ServerAuthLive } from "./auth/Layers/ServerAuth";
 import { OrchestrationLayerLive } from "./orchestration/runtimeLayer";
+import { SwarmReactorLive } from "./swarm/Layers/SwarmReactor";
+import { SwarmCoordinatorLive } from "./swarm/Layers/SwarmCoordinator";
+import { SwarmMessageBusLive } from "./swarm/Layers/SwarmMessageBus";
 import {
   clearPersistedServerRuntimeState,
   makePersistedServerRuntimeState,
@@ -121,12 +124,18 @@ const PlatformServicesLive = Layer.unwrap(
   }),
 );
 
+const SwarmLayerLive = SwarmReactorLive.pipe(
+  Layer.provideMerge(SwarmCoordinatorLive),
+  Layer.provideMerge(SwarmMessageBusLive),
+);
+
 const ReactorLayerLive = Layer.empty.pipe(
   Layer.provideMerge(OrchestrationReactorLive),
   Layer.provideMerge(ProviderRuntimeIngestionLive),
   Layer.provideMerge(ProviderCommandReactorLive),
   Layer.provideMerge(CheckpointReactorLive),
   Layer.provideMerge(RuntimeReceiptBusLive),
+  Layer.provideMerge(SwarmLayerLive),
 );
 
 const CheckpointingLayerLive = Layer.empty.pipe(

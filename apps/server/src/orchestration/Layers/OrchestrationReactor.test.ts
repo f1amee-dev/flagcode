@@ -5,6 +5,7 @@ import { CheckpointReactor } from "../Services/CheckpointReactor.ts";
 import { ProviderCommandReactor } from "../Services/ProviderCommandReactor.ts";
 import { ProviderRuntimeIngestionService } from "../Services/ProviderRuntimeIngestion.ts";
 import { OrchestrationReactor } from "../Services/OrchestrationReactor.ts";
+import { SwarmReactor } from "../../swarm/Services/SwarmReactor.ts";
 import { makeOrchestrationReactor } from "./OrchestrationReactor.ts";
 
 describe("OrchestrationReactor", () => {
@@ -46,6 +47,12 @@ describe("OrchestrationReactor", () => {
               started.push("checkpoint-reactor");
               return Effect.void;
             },
+            drain: Effect.void,
+          }),
+        ),
+        Layer.provideMerge(
+          Layer.succeed(SwarmReactor, {
+            start: () => Effect.void,
             drain: Effect.void,
           }),
         ),

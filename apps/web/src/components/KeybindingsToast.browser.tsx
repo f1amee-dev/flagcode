@@ -10,8 +10,8 @@ import {
   type ServerConfig,
   type ServerLifecycleWelcomePayload,
   type ThreadId,
-  WS_METHODS,
 } from "@flagcode/contracts";
+import { WS_METHODS } from "@flagcode/shared/rpc";
 import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
 import { ws, http, HttpResponse } from "msw";
 import { setupWorker } from "msw/browser";
@@ -64,7 +64,7 @@ function createBaseServerConfig(): ServerConfig {
       policy: "loopback-browser",
       bootstrapMethods: ["one-time-token"],
       sessionMethods: ["browser-session-cookie", "bearer-session-token"],
-      sessionCookieName: "t3_session",
+      sessionCookieName: "flagcode_session",
     },
     cwd: "/repo/project",
     keybindingsConfigPath: "/repo/project/.flagcode-keybindings.json",
@@ -137,6 +137,8 @@ function createMinimalSnapshot(): OrchestrationReadModel {
         worktreePath: null,
         latestTurn: null,
         ctfCategory: null,
+        swarmId: null,
+        swarmLabel: null,
         createdAt: NOW_ISO,
         updatedAt: NOW_ISO,
         archivedAt: null,
@@ -166,6 +168,7 @@ function createMinimalSnapshot(): OrchestrationReadModel {
         },
       },
     ],
+    swarms: [],
     updatedAt: NOW_ISO,
   };
 }

@@ -2,6 +2,7 @@ import {
   type ApprovalRequestId,
   DEFAULT_MODEL_BY_PROVIDER,
   type ClaudeCodeEffort,
+  type CtfCategory,
   type EnvironmentId,
   type MessageId,
   type ModelSelection,
@@ -1902,6 +1903,25 @@ export default function ChatView(props: ChatViewProps) {
   const toggleInteractionMode = useCallback(() => {
     handleInteractionModeChange(interactionMode === "plan" ? "default" : "plan");
   }, [handleInteractionModeChange, interactionMode]);
+  const handleCtfCategoryChange = useCallback(
+    async (category: CtfCategory | null) => {
+      if (!activeThread) return;
+      if (isServerThread) {
+        const api = readEnvironmentApi(activeThread.environmentId);
+        if (!api) return;
+        await api.orchestration.dispatchCommand({
+          type: "thread.meta.update",
+          commandId: newCommandId(),
+          threadId: activeThread.id,
+          ctfCategory: category,
+        });
+      } else if (isLocalDraftThread) {
+        setDraftThreadContext(composerDraftTarget, { ctfCategory: category });
+      }
+    },
+    [activeThread, isServerThread, isLocalDraftThread, composerDraftTarget, setDraftThreadContext],
+  );
+
   const togglePlanSidebar = useCallback(() => {
     setPlanSidebarOpen((open) => {
       if (open) {
@@ -2671,6 +2691,9 @@ export default function ChatView(props: ChatViewProps) {
                       interactionMode,
                       branch: activeThread.branch,
                       worktreePath: activeThread.worktreePath,
+                      ...(activeThread.ctfCategory
+                        ? { ctfCategory: activeThread.ctfCategory }
+                        : {}),
                       createdAt: activeThread.createdAt,
                     },
                   }
@@ -3459,6 +3482,7 @@ export default function ChatView(props: ChatViewProps) {
               toggleInteractionMode={toggleInteractionMode}
               handleRuntimeModeChange={handleRuntimeModeChange}
               handleInteractionModeChange={handleInteractionModeChange}
+              onCtfCategoryChange={handleCtfCategoryChange}
               togglePlanSidebar={togglePlanSidebar}
               focusComposer={focusComposer}
               scheduleComposerFocus={scheduleComposerFocus}

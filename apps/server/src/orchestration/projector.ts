@@ -1,4 +1,10 @@
-import type { OrchestrationEvent, OrchestrationReadModel, ThreadId } from "@flagcode/contracts";
+import type {
+  OrchestrationEvent,
+  OrchestrationReadModel,
+  OrchestrationSwarm,
+  SwarmId,
+  ThreadId,
+} from "@flagcode/contracts";
 import {
   OrchestrationCheckpointSummary,
   OrchestrationMessage,
@@ -13,6 +19,11 @@ import {
   ProjectCreatedPayload,
   ProjectDeletedPayload,
   ProjectMetaUpdatedPayload,
+  SwarmCreatedPayload,
+  SwarmFlagFoundPayload,
+  SwarmStartedPayload,
+  SwarmStatusChangedPayload,
+  SwarmStoppedPayload,
   ThreadActivityAppendedPayload,
   ThreadArchivedPayload,
   ThreadCreatedPayload,
@@ -43,6 +54,16 @@ function updateThread(
   patch: ThreadPatch,
 ): OrchestrationThread[] {
   return threads.map((thread) => (thread.id === threadId ? { ...thread, ...patch } : thread));
+}
+
+type SwarmPatch = Partial<Omit<OrchestrationSwarm, "id" | "projectId">>;
+
+function updateSwarm(
+  swarms: ReadonlyArray<OrchestrationSwarm>,
+  swarmId: SwarmId,
+  patch: SwarmPatch,
+): OrchestrationSwarm[] {
+  return swarms.map((swarm) => (swarm.id === swarmId ? { ...swarm, ...patch } : swarm));
 }
 
 function decodeForEvent<A>(
@@ -160,6 +181,7 @@ export function createEmptyReadModel(nowIso: string): OrchestrationReadModel {
     snapshotSequence: 0,
     projects: [],
     threads: [],
+    swarms: [],
     updatedAt: nowIso,
   };
 }
@@ -260,6 +282,8 @@ export function projectEvent(
             branch: payload.branch,
             worktreePath: payload.worktreePath,
             ctfCategory: payload.ctfCategory ?? null,
+            swarmId: payload.swarmId ?? null,
+            swarmLabel: payload.swarmLabel ?? null,
             latestTurn: null,
             createdAt: payload.createdAt,
             updatedAt: payload.updatedAt,
@@ -648,6 +672,80 @@ export function projectEvent(
             }),
           };
         }),
+      );
+
+    case "swarm.created":
+      return decodeForEvent(SwarmCreatedPayload, event.payload, event.type, "payload").pipe(
+        Effect.map((payload) => {
+          const swarm: OrchestrationSwarm = {
+            id: payload.swarmId,
+            projectId: payload.projectId,
+            title: payload.title,
+            challengePrompt: payload.challengePrompt,
+            ctfCategory: payload.ctfCategory,
+            threadIds: [],
+            memberConfigs: payload.memberConfigs,
+            status: "pending",
+            winnerThreadId: null,
+            flagValue: null,
+            createdAt: payload.createdAt,
+            updatedAt: payload.updatedAt,
+          };
+          const existing = nextBase.swarms.find((entry) => entry.id === swarm.id);
+          return {
+            ...nextBase,
+            swarms: existing
+              ? nextBase.swarms.map((entry) => (entry.id === swarm.id ? swarm : entry))
+              : [...nextBase.swarms, swarm],
+          };
+        }),
+      );
+
+    case "swarm.started":
+      return decodeForEvent(SwarmStartedPayload, event.payload, event.type, "payload").pipe(
+        Effect.map((payload) => ({
+          ...nextBase,
+          swarms: updateSwarm(nextBase.swarms, payload.swarmId, {
+            status: "running",
+            threadIds: payload.threadIds,
+            updatedAt: event.occurredAt,
+          }),
+        })),
+      );
+
+    case "swarm.flag-found":
+      return decodeForEvent(SwarmFlagFoundPayload, event.payload, event.type, "payload").pipe(
+        Effect.map((payload) => ({
+          ...nextBase,
+          swarms: updateSwarm(nextBase.swarms, payload.swarmId, {
+            status: "solved",
+            winnerThreadId: payload.threadId,
+            flagValue: payload.flagValue,
+            updatedAt: event.occurredAt,
+          }),
+        })),
+      );
+
+    case "swarm.stopped":
+      return decodeForEvent(SwarmStoppedPayload, event.payload, event.type, "payload").pipe(
+        Effect.map((payload) => ({
+          ...nextBase,
+          swarms: updateSwarm(nextBase.swarms, payload.swarmId, {
+            status: "stopped",
+            updatedAt: event.occurredAt,
+          }),
+        })),
+      );
+
+    case "swarm.status-changed":
+      return decodeForEvent(SwarmStatusChangedPayload, event.payload, event.type, "payload").pipe(
+        Effect.map((payload) => ({
+          ...nextBase,
+          swarms: updateSwarm(nextBase.swarms, payload.swarmId, {
+            status: payload.status,
+            updatedAt: payload.updatedAt,
+          }),
+        })),
       );
 
     default:

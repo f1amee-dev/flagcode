@@ -7,8 +7,8 @@ import {
   type LocalApi,
   ORCHESTRATION_WS_METHODS,
   type ServerSettingsPatch,
-  WS_METHODS,
 } from "@flagcode/contracts";
+import { WS_METHODS } from "@flagcode/shared/rpc";
 import { applyGitStatusStreamEvent } from "@flagcode/shared/git";
 import { Effect, Stream } from "effect";
 

@@ -20,6 +20,11 @@ import {
   ThreadApprovalResponseRequestedPayload as ContractsThreadApprovalResponseRequestedPayloadSchema,
   ThreadCheckpointRevertRequestedPayload as ContractsThreadCheckpointRevertRequestedPayloadSchema,
   ThreadSessionStopRequestedPayload as ContractsThreadSessionStopRequestedPayloadSchema,
+  SwarmCreatedPayload as ContractsSwarmCreatedPayloadSchema,
+  SwarmStartedPayload as ContractsSwarmStartedPayloadSchema,
+  SwarmFlagFoundPayload as ContractsSwarmFlagFoundPayloadSchema,
+  SwarmStoppedPayload as ContractsSwarmStoppedPayloadSchema,
+  SwarmStatusChangedPayload as ContractsSwarmStatusChangedPayloadSchema,
 } from "@flagcode/contracts";
 
 // Server-internal alias surface, backed by contract schemas as the source of truth.
@@ -50,3 +55,9 @@ export const ThreadApprovalResponseRequestedPayload =
 export const ThreadCheckpointRevertRequestedPayload =
   ContractsThreadCheckpointRevertRequestedPayloadSchema;
 export const ThreadSessionStopRequestedPayload = ContractsThreadSessionStopRequestedPayloadSchema;
+
+export const SwarmCreatedPayload = ContractsSwarmCreatedPayloadSchema;
+export const SwarmStartedPayload = ContractsSwarmStartedPayloadSchema;
+export const SwarmFlagFoundPayload = ContractsSwarmFlagFoundPayloadSchema;
+export const SwarmStoppedPayload = ContractsSwarmStoppedPayloadSchema;
+export const SwarmStatusChangedPayload = ContractsSwarmStatusChangedPayloadSchema;

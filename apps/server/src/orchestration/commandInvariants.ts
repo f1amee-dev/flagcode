@@ -2,8 +2,10 @@ import type {
   OrchestrationCommand,
   OrchestrationProject,
   OrchestrationReadModel,
+  OrchestrationSwarm,
   OrchestrationThread,
   ProjectId,
+  SwarmId,
   ThreadId,
 } from "@flagcode/contracts";
 import { Effect } from "effect";
@@ -138,6 +140,46 @@ export function requireThreadAbsent(input: {
     invariantError(
       input.command.type,
       `Thread '${input.threadId}' already exists and cannot be created twice.`,
+    ),
+  );
+}
+
+export function findSwarmById(
+  readModel: OrchestrationReadModel,
+  swarmId: SwarmId,
+): OrchestrationSwarm | undefined {
+  return readModel.swarms.find((swarm) => swarm.id === swarmId);
+}
+
+export function requireSwarm(input: {
+  readonly readModel: OrchestrationReadModel;
+  readonly command: OrchestrationCommand;
+  readonly swarmId: SwarmId;
+}): Effect.Effect<OrchestrationSwarm, OrchestrationCommandInvariantError> {
+  const swarm = findSwarmById(input.readModel, input.swarmId);
+  if (swarm) {
+    return Effect.succeed(swarm);
+  }
+  return Effect.fail(
+    invariantError(
+      input.command.type,
+      `Swarm '${input.swarmId}' does not exist for command '${input.command.type}'.`,
+    ),
+  );
+}
+
+export function requireSwarmAbsent(input: {
+  readonly readModel: OrchestrationReadModel;
+  readonly command: OrchestrationCommand;
+  readonly swarmId: SwarmId;
+}): Effect.Effect<void, OrchestrationCommandInvariantError> {
+  if (!findSwarmById(input.readModel, input.swarmId)) {
+    return Effect.void;
+  }
+  return Effect.fail(
+    invariantError(
+      input.command.type,
+      `Swarm '${input.swarmId}' already exists and cannot be created twice.`,
     ),
   );
 }

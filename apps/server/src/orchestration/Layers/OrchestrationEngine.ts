@@ -51,8 +51,8 @@ interface CommandEnvelope {
 }
 
 function commandToAggregateRef(command: OrchestrationCommand): {
-  readonly aggregateKind: "project" | "thread";
-  readonly aggregateId: ProjectId | ThreadId;
+  readonly aggregateKind: OrchestrationEvent["aggregateKind"];
+  readonly aggregateId: OrchestrationEvent["aggregateId"];
 } {
   switch (command.type) {
     case "project.create":
@@ -62,10 +62,18 @@ function commandToAggregateRef(command: OrchestrationCommand): {
         aggregateKind: "project",
         aggregateId: command.projectId,
       };
+    case "swarm.create":
+    case "swarm.start":
+    case "swarm.flag-found":
+    case "swarm.stop":
+      return {
+        aggregateKind: "swarm",
+        aggregateId: command.swarmId,
+      };
     default:
       return {
         aggregateKind: "thread",
-        aggregateId: command.threadId,
+        aggregateId: (command as { threadId: ThreadId }).threadId,
       };
   }
 }

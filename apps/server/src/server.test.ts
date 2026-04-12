@@ -18,10 +18,9 @@ import {
   ProjectId,
   ResolvedKeybindingRule,
   ThreadId,
-  WS_METHODS,
-  WsRpcGroup,
   EditorId,
 } from "@flagcode/contracts";
+import { WS_METHODS, WsRpcGroup } from "@flagcode/shared/rpc";
 import { assert, it } from "@effect/vitest";
 import { assertFailure, assertInclude, assertTrue } from "@effect/vitest/utils";
 import {
@@ -101,6 +100,7 @@ import { WorkspacePathsLive } from "./workspace/Layers/WorkspacePaths.ts";
 import { ServerSecretStoreLive } from "./auth/Layers/ServerSecretStore.ts";
 import { ServerAuthLive } from "./auth/Layers/ServerAuth.ts";
 import { TextGeneration, type TextGenerationShape } from "./git/Services/TextGeneration.ts";
+import { SwarmMessageBus } from "./swarm/Services/SwarmMessageBus.ts";
 
 const defaultProjectId = ProjectId.make("project-default");
 const defaultThreadId = ThreadId.make("thread-default");
@@ -149,6 +149,8 @@ const makeDefaultOrchestrationReadModel = () => {
         branch: null,
         worktreePath: null,
         ctfCategory: null,
+        swarmId: null,
+        swarmLabel: null,
         createdAt: now,
         updatedAt: now,
         archivedAt: null,
@@ -161,6 +163,7 @@ const makeDefaultOrchestrationReadModel = () => {
         deletedAt: null,
       },
     ],
+    swarms: [],
   };
 };
 
@@ -486,6 +489,13 @@ const buildAppUnderTest = (options?: {
         }),
       ),
       Layer.provideMerge(authTestLayer),
+      Layer.provide(
+        Layer.succeed(SwarmMessageBus, {
+          postFinding: () => Effect.void,
+          readFindings: () => Effect.succeed([]),
+          streamFindings: () => Stream.empty,
+        }),
+      ),
       Layer.provide(workspaceAndProjectServicesLayer),
       Layer.provideMerge(FetchHttpClient.layer),
       Layer.provide(layerConfig),
@@ -806,7 +816,7 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
         "browser-session-cookie",
         "bearer-session-token",
       ]);
-      assert.isTrue(body.auth.sessionCookieName.startsWith("t3_session_"));
+      assert.isTrue(body.auth.sessionCookieName.startsWith("flagcode_session_"));
     }).pipe(Effect.provide(NodeHttpServer.layerTest)),
   );
 
@@ -2731,6 +2741,8 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
             branch: null,
             worktreePath: null,
             ctfCategory: null,
+            swarmId: null,
+            swarmLabel: null,
             createdAt: now,
             updatedAt: now,
             archivedAt: null,
@@ -2743,6 +2755,7 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
             deletedAt: null,
           },
         ],
+        swarms: [],
       };
 
       yield* buildAppUnderTest({
@@ -2826,15 +2839,15 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
   it.effect("enriches replayed project events with repository identity metadata", () =>
     Effect.gen(function* () {
       const repositoryIdentity = {
-        canonicalKey: "github.com/t3tools/flagcode",
+        canonicalKey: "github.com/flagteam/flagcode",
         locator: {
           source: "git-remote" as const,
           remoteName: "origin",
-          remoteUrl: "git@github.com:T3Tools/flagcode.git",
+          remoteUrl: "git@github.com:FlagTeam/flagcode.git",
         },
-        displayName: "T3Tools/flagcode",
+        displayName: "FlagTeam/flagcode",
         provider: "github",
-        owner: "T3Tools",
+        owner: "FlagTeam",
         name: "flagcode",
       };
 
@@ -3396,15 +3409,15 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
     Effect.gen(function* () {
       let resolveCalls = 0;
       const repositoryIdentity = {
-        canonicalKey: "github.com/t3tools/flagcode",
+        canonicalKey: "github.com/flagteam/flagcode",
         locator: {
           source: "git-remote" as const,
           remoteName: "origin",
-          remoteUrl: "git@github.com:t3tools/flagcode.git",
+          remoteUrl: "git@github.com:flagteam/flagcode.git",
         },
-        displayName: "t3tools/flagcode",
+        displayName: "flagteam/flagcode",
         provider: "github" as const,
-        owner: "t3tools",
+        owner: "flagteam",
         name: "flagcode",
       };
 
@@ -3468,15 +3481,15 @@ it.layer(NodeServices.layer)("server router seam", (it) => {
   it.effect("enriches subscribed project meta updates with repository identity metadata", () =>
     Effect.gen(function* () {
       const repositoryIdentity = {
-        canonicalKey: "github.com/t3tools/flagcode",
+        canonicalKey: "github.com/flagteam/flagcode",
         locator: {
           source: "git-remote" as const,
           remoteName: "upstream",
-          remoteUrl: "git@github.com:T3Tools/flagcode.git",
+          remoteUrl: "git@github.com:FlagTeam/flagcode.git",
         },
-        displayName: "T3Tools/flagcode",
+        displayName: "FlagTeam/flagcode",
         provider: "github",
-        owner: "T3Tools",
+        owner: "FlagTeam",
         name: "flagcode",
       };
 

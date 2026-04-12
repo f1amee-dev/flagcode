@@ -176,6 +176,9 @@ function makeState(thread: Thread): AppState {
       ) as EnvironmentState["turnDiffSummaryByThreadId"][ThreadId],
     },
     sidebarThreadSummaryById: {},
+    swarmIds: [],
+    swarmById: {},
+    swarmIdsByProjectId: {},
     bootstrapComplete: true,
   };
   return withActiveEnvironmentState(environmentState, {
@@ -201,6 +204,9 @@ function makeEmptyState(overrides: Partial<AppState & EnvironmentState> = {}): A
     turnDiffIdsByThreadId: {},
     turnDiffSummaryByThreadId: {},
     sidebarThreadSummaryById: {},
+    swarmIds: [],
+    swarmById: {},
+    swarmIdsByProjectId: {},
     bootstrapComplete: true,
   };
   return withActiveEnvironmentState(environmentState, overrides);
@@ -386,6 +392,8 @@ function makeReadModelThread(overrides: Partial<OrchestrationReadModel["threads"
     worktreePath: null,
     latestTurn: null,
     ctfCategory: null,
+    swarmId: null,
+    swarmLabel: null,
     createdAt: "2026-02-27T00:00:00.000Z",
     updatedAt: "2026-02-27T00:00:00.000Z",
     archivedAt: null,
@@ -419,6 +427,7 @@ function makeReadModel(thread: OrchestrationReadModel["threads"][number]): Orche
       },
     ],
     threads: [thread],
+    swarms: [],
   };
 }
 
@@ -626,6 +635,7 @@ describe("store read model sync", () => {
         }),
       ],
       threads: [],
+      swarms: [],
     };
 
     const next = syncServerReadModel(initialState, readModel, localEnvironmentId);
@@ -783,6 +793,8 @@ describe("incremental orchestration updates", () => {
         branch: null,
         worktreePath: null,
         ctfCategory: null,
+        swarmId: null,
+        swarmLabel: null,
         createdAt: "2026-02-27T00:00:01.000Z",
         updatedAt: "2026-02-27T00:00:01.000Z",
       }),

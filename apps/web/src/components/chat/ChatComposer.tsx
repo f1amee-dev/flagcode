@@ -95,10 +95,12 @@ import {
 } from "lucide-react";
 import { proposedPlanTitle } from "../../proposedPlan";
 import { resolveSelectableProvider, getProviderModels } from "../../providerModels";
+import type { CtfCategory } from "@flagcode/contracts";
 import type { UnifiedSettings } from "@flagcode/contracts/settings";
 import type { SessionPhase, Thread } from "../../types";
 import type { PendingUserInputDraftAnswer } from "../../pendingUserInput";
 import type { PendingApproval, PendingUserInput } from "../../session-logic";
+import { CtfCategoryPicker } from "./CtfCategoryPicker";
 import { deriveLatestContextWindowSnapshot } from "../../lib/contextWindow";
 import { formatProviderSkillDisplayName } from "../../providerSkillPresentation";
 import { searchProviderSkills } from "../../providerSkillSearch";
@@ -429,6 +431,7 @@ export interface ChatComposerProps {
   ) => void;
 
   onProviderModelSelect: (provider: ProviderKind, model: string) => void;
+  onCtfCategoryChange: (category: CtfCategory | null) => void;
   toggleInteractionMode: () => void;
   handleRuntimeModeChange: (mode: RuntimeMode) => void;
   handleInteractionModeChange: (mode: ProviderInteractionMode) => void;
@@ -1917,6 +1920,16 @@ export const ChatComposer = memo(
                         }
                       : {})}
                     onProviderModelChange={onProviderModelSelect}
+                  />
+
+                  {/* CTF category picker — locked after the first message is sent */}
+                  <CtfCategoryPicker
+                    value={props.activeThread?.ctfCategory ?? null}
+                    onChange={props.onCtfCategoryChange}
+                    disabled={
+                      (props.activeThread?.messages?.length ?? 0) > 0
+                    }
+                    compact={isComposerFooterCompact}
                   />
 
                   {isComposerFooterCompact ? (

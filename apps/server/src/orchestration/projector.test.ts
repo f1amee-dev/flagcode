@@ -85,6 +85,8 @@ describe("orchestration projector", () => {
         branch: null,
         worktreePath: null,
         ctfCategory: null,
+        swarmId: null,
+        swarmLabel: null,
         latestTurn: null,
         createdAt: now,
         updatedAt: now,
